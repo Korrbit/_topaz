@@ -957,30 +957,26 @@ INSERT INTO `mob_pets` VALUES (16949252, 1, 15);
 
 
 -- Al taieu
-INSERT INTO `mob_pets` VALUES (16912406, 1, 14);
-INSERT INTO `mob_pets` VALUES (16912474, 7, 14);
-INSERT INTO `mob_pets` VALUES (16912519, 7, 14);
-INSERT INTO `mob_pets` VALUES (16912571, 2, 14);
-INSERT INTO `mob_pets` VALUES (16912572, 2, 14);
-INSERT INTO `mob_pets` VALUES (16912605, 9, 14);
-INSERT INTO `mob_pets` VALUES (16912607, 8, 14);
-INSERT INTO `mob_pets` VALUES (16912609, 7, 14);
-INSERT INTO `mob_pets` VALUES (16912673, 1, 14);
-INSERT INTO `mob_pets` VALUES (16912726, 1, 14);
-INSERT INTO `mob_pets` VALUES (16912747, 1, 14);
-
-INSERT INTO `mob_pets` VALUES (16912418, 3, 15);
-INSERT INTO `mob_pets` VALUES (16912529, 1, 15);
-INSERT INTO `mob_pets` VALUES (16912588, 5, 15);
-INSERT INTO `mob_pets` VALUES (16912712, 1, 15);
-INSERT INTO `mob_pets` VALUES (16912762, 1, 15);
-INSERT INTO `mob_pets` VALUES (16912475, 7, 15);
-
-INSERT INTO `mob_pets` VALUES (16912405, 3, 9);
-INSERT INTO `mob_pets` VALUES (16912724, 1, 9);
-INSERT INTO `mob_pets` VALUES (16912473, 10, 9);
-INSERT INTO `mob_pets` VALUES (16912666, 1, 9);
-
+INSERT INTO `mob_pets` VALUES (16912405, 3, 9); -- Ulaern BST
+INSERT INTO `mob_pets` VALUES (16912406, 1, 14); -- Ulaern DRG
+INSERT INTO `mob_pets` VALUES (16912418, 3, 15); -- Ulaern SMN
+INSERT INTO `mob_pets` VALUES (16912473, 10, 9); -- Omaern BST
+INSERT INTO `mob_pets` VALUES (16912474, 7, 14); -- Omaern DRG
+INSERT INTO `mob_pets` VALUES (16912475, 7, 15); -- Omaern SMN
+INSERT INTO `mob_pets` VALUES (16912519, 1, 14); -- Omaern DRG
+INSERT INTO `mob_pets` VALUES (16912528, 3, 9); -- Omaern BST
+INSERT INTO `mob_pets` VALUES (16912529, 1, 15); -- Omaern SMN
+INSERT INTO `mob_pets` VALUES (16912571, 2, 14); -- Omaern DRG
+INSERT INTO `mob_pets` VALUES (16912572, 2, 14); -- Omaern DRG
+INSERT INTO `mob_pets` VALUES (16912588, 5, 15); -- Omaern SMN
+INSERT INTO `mob_pets` VALUES (16912609, 5, 9); -- Omaern BST
+INSERT INTO `mob_pets` VALUES (16912666, 1, 9); -- Omaern BST
+INSERT INTO `mob_pets` VALUES (16912673, 1, 14); -- Omaern DRG
+INSERT INTO `mob_pets` VALUES (16912712, 1, 15); -- Omaern SMN
+INSERT INTO `mob_pets` VALUES (16912724, 1, 9); -- Omaern BST
+INSERT INTO `mob_pets` VALUES (16912726, 1, 14); -- Omaern DRG
+INSERT INTO `mob_pets` VALUES (16912747, 1, 14); -- Omaern DRG
+INSERT INTO `mob_pets` VALUES (16912762, 1, 15); -- Omaern SMN
 
 -- Huxoi
 INSERT INTO `mob_pets` VALUES (16916586, 4, 9);
@@ -1013,6 +1009,10 @@ INSERT INTO `mob_pets` VALUES (16920787 , 1, 15);
 -- INSERT INTO `mob_pets` VALUES (16887850, 1, 9);
 INSERT INTO `mob_pets` VALUES (16928790, 1, 14);
 INSERT INTO `mob_pets` VALUES (16928799, 1, 15);
+
+INSERT INTO `mob_pets` VALUES (16933135, 1, 14);
+INSERT INTO `mob_pets` VALUES (16933144, 1, 15);
+
 INSERT INTO `mob_pets` VALUES (17326482, 1, 9);
 INSERT INTO `mob_pets` VALUES (17326509, 1, 9);
 INSERT INTO `mob_pets` VALUES (17326587, 1, 9);
@@ -1121,15 +1121,16 @@ INSERT INTO `mob_pets` VALUES (17330481, 1, 15);
 INSERT INTO `mob_pets` VALUES (16928819, 1, 15); -- Tonberry_s_Elemental
 INSERT INTO `mob_pets` VALUES (16928823, 1, 15); -- Tonberry_s_Elemental
 INSERT INTO `mob_pets` VALUES (16928827, 1, 15); -- Tonberry_s_Elemental
+INSERT INTO `mob_pets` VALUES (16928988, 1, 15); -- Yagudo_s_Elemental
 INSERT INTO `mob_pets` VALUES (16929007, 1, 15); -- Yagudo_s_Elemental
 INSERT INTO `mob_pets` VALUES (16929015, 1, 14); -- Orc_s_Wyvern
--- INSERT INTO `mob_pets` VALUES (16929056, 1, 9); -- Aern_s_Wynav
--- INSERT INTO `mob_pets` VALUES (16929059, 1, 9); -- Aern_s_Euvhi
--- INSERT INTO `mob_pets` VALUES (16929067, 1, 9); -- Aern_s_Elemental
--- INSERT INTO `mob_pets` VALUES (16929068, 1, 9); -- Aern_s_Avatar
--- INSERT INTO `mob_pets` VALUES (16929070, 1, 9); -- Aern_s_Wynav
--- INSERT INTO `mob_pets` VALUES (16929074, 1, 9); -- Aern_s_Euvhi
--- INSERT INTO `mob_pets` VALUES (16929080, 1, 9); -- Aern_s_Elemental
+INSERT INTO `mob_pets` VALUES (16929055, 1, 14); -- Aern_s_Wynav
+INSERT INTO `mob_pets` VALUES (16929058, 1, 9); -- Aern_s_Euvhi
+INSERT INTO `mob_pets` VALUES (16929066, 1, 15); -- Aern_s_Elemental
+-- INSERT INTO `mob_pets` VALUES (16929068, 1, 15); -- Aern_s_Avatar
+INSERT INTO `mob_pets` VALUES (16929069, 1, 14); -- Aern_s_Wynav
+INSERT INTO `mob_pets` VALUES (16929073, 1, 9); -- Aern_s_Euvhi
+INSERT INTO `mob_pets` VALUES (16929079, 1, 15); -- Aern_s_Elemental
 -- INSERT INTO `mob_pets` VALUES (16929081, 1, 9); -- Aern_s_Avatar
 -- INSERT INTO `mob_pets` VALUES (16929099, 1, 9); -- Aern_s_Wynav
 -- INSERT INTO `mob_pets` VALUES (16929102, 1, 9); -- Aern_s_Wynav
