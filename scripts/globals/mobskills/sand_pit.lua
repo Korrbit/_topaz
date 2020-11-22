@@ -7,7 +7,7 @@ require("scripts/globals/settings")
 require("scripts/globals/status")
 ---------------------------------------------
 
-function onMobSkillCheck(target,mob,skill)
+function onMobSkillCheck(target, mob, skill)
     return 0
 end
 
@@ -15,7 +15,10 @@ function onMobWeaponSkill(target, mob, skill)
     local typeEffect = tpz.effect.BIND
     skill:setMsg(MobStatusEffectMove(mob, target, typeEffect, 1, 0, 30))
 
-    if (mob:getPool() == 1318) then -- if the pool ID == Feeler Antlion ID
+    -- Different mechanics based on the antlion using it
+    local PoolID = mob:getPool()
+
+    if (PoolID == 1318) then -- if the pool ID == Feeler Antlion ID
         local npcX = mob:getXPos()
         local npcY = mob:getYPos()
         local npcZ = mob:getZPos()
@@ -38,9 +41,17 @@ function onMobWeaponSkill(target, mob, skill)
 
         if (spawnId > 0) then
             local executioner = GetMobByID(spawnId)
-            executioner:setSpawn(npcX-1,npcY-2,npcZ-1) -- Set its spawn location.
+            executioner:setSpawn(npcX-1, npcY-2, npcZ-1) -- Set its spawn location.
             SpawnMob(spawnId):updateEnmity(target)
         end
+    elseif (PoolID == 4046) then
+        -- Tuchulcha (Sheep in Antlion's Clothing)
+        -- Resets all enmity
+        for _, enmAlly in pairs(mob:getBattlefield():getAllies()) do
+            mob:resetEnmity(enmAlly)
+        end
+        -- Removes all enfeebling effects
+        mob:delStatusEffectsByFlag(tpz.effectFlag.ERASABLE)
     end
 
     return typeEffect

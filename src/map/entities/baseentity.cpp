@@ -1,4 +1,4 @@
-/*
+﻿/*
 ===========================================================================
 
   Copyright (c) 2010-2015 Darkstar Dev Teams
@@ -33,7 +33,7 @@ CBaseEntity::CBaseEntity()
     targid = 0;
     objtype = ENTITYTYPE::TYPE_NONE;
     status = STATUS_DISAPPEAR;
-	m_TargID = 0;
+    m_TargID = 0;
     memset(&look, 0, sizeof(look));
     memset(&mainlook, 0, sizeof(mainlook));
     memset(&loc, 0, sizeof(loc));
@@ -41,12 +41,12 @@ CBaseEntity::CBaseEntity()
     animationsub = 0;
     speed = 50 + map_config.speed_mod;
     speedsub = 50 + map_config.speed_mod;
-	namevis = 1;
+    namevis = 1;
     allegiance = 0;
     updatemask = 0;
     PAI = nullptr;
-	PBattlefield = nullptr;
-	PInstance = nullptr;
+    PBattlefield = nullptr;
+    PInstance = nullptr;
 }
 
 CBaseEntity::~CBaseEntity()
@@ -117,6 +117,16 @@ void CBaseEntity::HideName(bool hide)
 bool CBaseEntity::IsNameHidden()
 {
 	return namevis & FLAG_HIDE_NAME;
+}
+
+bool CBaseEntity::IsTargetable()
+{
+    return (namevis & FLAG_UNTARGETABLE) == 0;
+}
+
+bool CBaseEntity::isWideScannable()
+{
+    return status != STATUS_DISAPPEAR && !IsNameHidden() && IsTargetable();
 }
 
 CBaseEntity* CBaseEntity::GetEntity(uint16 targid, uint8 filter)

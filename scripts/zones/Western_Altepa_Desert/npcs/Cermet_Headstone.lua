@@ -13,38 +13,38 @@ require("scripts/globals/titles")
 local function hasAllFragments(player)
     return
         player:hasKeyItem(tpz.ki.FIRE_FRAGMENT) and
-        player:hasKeyItem(tpz.ki.WATER_FRAGMENT) and
-        player:hasKeyItem(tpz.ki.EARTH_FRAGMENT) and
-        player:hasKeyItem(tpz.ki.WIND_FRAGMENT) and
-        player:hasKeyItem(tpz.ki.LIGHTNING_FRAGMENT) and
         player:hasKeyItem(tpz.ki.ICE_FRAGMENT) and
+        player:hasKeyItem(tpz.ki.WIND_FRAGMENT) and
+        player:hasKeyItem(tpz.ki.EARTH_FRAGMENT) and
+        player:hasKeyItem(tpz.ki.LIGHTNING_FRAGMENT) and
+        player:hasKeyItem(tpz.ki.WATER_FRAGMENT) and
         player:hasKeyItem(tpz.ki.LIGHT_FRAGMENT) and
         player:hasKeyItem(tpz.ki.DARK_FRAGMENT)
 end
 
-function onTrade(player,npc,trade)
+function onTrade(player, npc, trade)
 end
 
-function onTrigger(player,npc)
+function onTrigger(player, npc)
     if player:getCurrentMission(ZILART) == tpz.mission.id.zilart.HEADSTONE_PILGRIMAGE then
         if not player:hasKeyItem(tpz.ki.EARTH_FRAGMENT) then
-            player:startEvent(200,tpz.ki.EARTH_FRAGMENT)
+            player:startEvent(200, tpz.ki.EARTH_FRAGMENT)
         elseif hasAllFragments(player) then
             player:messageSpecial(ID.text.ALREADY_HAVE_ALL_FRAGS)
         elseif player:hasKeyItem(tpz.ki.EARTH_FRAGMENT) then
             player:messageSpecial(ID.text.ALREADY_OBTAINED_FRAG, tpz.ki.EARTH_FRAGMENT)
         end
-    elseif player:hasCompletedMission(ZILART,tpz.mission.id.zilart.HEADSTONE_PILGRIMAGE) then
+    elseif player:hasCompletedMission(ZILART, tpz.mission.id.zilart.HEADSTONE_PILGRIMAGE) then
         player:messageSpecial(ID.text.ZILART_MONUMENT)
     else
         player:messageSpecial(ID.text.CANNOT_REMOVE_FRAG)
     end
 end
 
-function onEventUpdate(player,csid,option)
+function onEventUpdate(player, csid, option)
 end
 
-function onEventFinish(player,csid,option)
+function onEventFinish(player, csid, option)
     if csid == 200 and option == 1 then
         player:addKeyItem(tpz.ki.EARTH_FRAGMENT)
 

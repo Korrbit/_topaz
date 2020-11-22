@@ -1,4 +1,4 @@
-/*
+﻿/*
 ===========================================================================
 
   Copyright (c) 2010-2015 Darkstar Dev Teams
@@ -44,22 +44,22 @@ enum ENSPELL
 {
     ENSPELL_NONE = 0,
     ENSPELL_I_FIRE = 1,
-    ENSPELL_I_EARTH = 2,
-    ENSPELL_I_WATER = 3,
-    ENSPELL_I_WIND = 4,
-    ENSPELL_I_ICE = 5,
-    ENSPELL_I_THUNDER = 6,
+    ENSPELL_I_ICE = 2,
+    ENSPELL_I_WIND = 3,
+    ENSPELL_I_EARTH = 4,
+    ENSPELL_I_THUNDER = 5,
+    ENSPELL_I_WATER = 6,
     ENSPELL_I_LIGHT = 7,
     ENSPELL_I_DARK = 8,
     ENSPELL_II_FIRE = 9,
-    ENSPELL_II_EARTH = 10,
-    ENSPELL_II_WATER = 11,
-    ENSPELL_II_WIND = 12,
-    ENSPELL_II_ICE = 13,
-    ENSPELL_II_THUNDER = 14,
+    ENSPELL_II_ICE = 10,
+    ENSPELL_II_WIND = 11,
+    ENSPELL_II_EARTH = 12,
+    ENSPELL_II_THUNDER = 13,
+    ENSPELL_II_WATER = 14,
     ENSPELL_II_LIGHT = 15,
-    ENSPELL_BLOOD_WEAPON = 16,
-    ENSPELL_ROLLING_THUNDER = 17,
+    ENSPELL_II_DARK = 16,
+    ENSPELL_BLOOD_WEAPON = 17,
     ENSPELL_AUSPICE = 18,
     ENSPELL_DRAIN_SAMBA = 19,
     ENSPELL_ASPIR_SAMBA = 20,
@@ -85,11 +85,11 @@ enum ELEMENT
 {
     ELEMENT_NONE = 0,
     ELEMENT_FIRE = 1,
-    ELEMENT_EARTH = 2,
-    ELEMENT_WATER = 3,
-    ELEMENT_WIND = 4,
-    ELEMENT_ICE = 5,
-    ELEMENT_THUNDER = 6,
+    ELEMENT_ICE = 2,
+    ELEMENT_WIND = 3,
+    ELEMENT_EARTH = 4,
+    ELEMENT_THUNDER = 5,
+    ELEMENT_WATER = 6,
     ELEMENT_LIGHT = 7,
     ELEMENT_DARK = 8
 };
@@ -107,7 +107,7 @@ namespace battleutils
     uint8           getHitCount(uint8 hits);
     uint8           CheckMobMultiHits(CBattleEntity* PEntity);
 
-    int16           GetSnapshotReduction(CCharEntity* m_PChar, int16 delay);
+    int16           GetSnapshotReduction(CBattleEntity* battleEntity, int16 delay);
     int32           GetRangedAttackBonuses(CBattleEntity* battleEntity);
     int32           GetRangedAccuracyBonuses(CBattleEntity* battleEntity);
 
@@ -124,11 +124,12 @@ namespace battleutils
     void                FreeWeaponSkillsList();
     void                FreeMobSkillList();
 
-    SUBEFFECT           GetSkillChainEffect(CBattleEntity* PDefender, uint8 primary, uint8 secondary, uint8 tertiary);
-    SKILLCHAIN_ELEMENT  FormSkillchain(const std::list<SKILLCHAIN_ELEMENT>& resonance, const std::list<SKILLCHAIN_ELEMENT>& skill);
-    uint8               GetSkillchainTier(SKILLCHAIN_ELEMENT skillchain);
-    uint8               GetSkillchainSubeffect(SKILLCHAIN_ELEMENT skillchain);
-    int16               GetSkillchainMinimumResistance(SKILLCHAIN_ELEMENT element, CBattleEntity* PDefender, ELEMENT* appliedEle);
+    SUBEFFECT            GetSkillChainEffect(CBattleEntity* PDefender, uint8 primary, uint8 secondary, uint8 tertiary);
+    SKILLCHAIN_ELEMENT   FormSkillchain(const std::list<SKILLCHAIN_ELEMENT>& resonance, const std::list<SKILLCHAIN_ELEMENT>& skill);
+    uint8                GetSkillchainTier(SKILLCHAIN_ELEMENT skillchain);
+    uint8                GetSkillchainSubeffect(SKILLCHAIN_ELEMENT skillchain);
+    int16                GetSkillchainMinimumResistance(SKILLCHAIN_ELEMENT element, CBattleEntity* PDefender, ELEMENT* appliedEle);
+    std::vector<ELEMENT> GetSkillchainMagicElement(SKILLCHAIN_ELEMENT skillchain);
 
     bool            IsParalyzed(CBattleEntity* PAttacker);
     bool            IsAbsorbByShadow(CBattleEntity* PDefender);
@@ -145,7 +146,7 @@ namespace battleutils
     uint8               GetGuardRate(CBattleEntity* PAttacker, CBattleEntity* PDefender);
     float               GetDamageRatio(CBattleEntity* PAttacker, CBattleEntity* PDefender, bool isCritical, float bonusAttPercent);
 
-    int32               TakePhysicalDamage(CBattleEntity* PAttacker, CBattleEntity* PDefender, PHYSICAL_ATTACK_TYPE physicalAttackType, int32 damage, bool isBlocked, uint8 slot, uint16 tpMultiplier, CBattleEntity* taChar, bool giveTPtoVictim, bool giveTPtoAttacker, bool isCounter = false);
+    int32               TakePhysicalDamage(CBattleEntity* PAttacker, CBattleEntity* PDefender, PHYSICAL_ATTACK_TYPE physicalAttackType, int32 damage, bool isBlocked, uint8 slot, uint16 tpMultiplier, CBattleEntity* taChar, bool giveTPtoVictim, bool giveTPtoAttacker, bool isCounter = false,  bool isCovered = false, CBattleEntity* POriginalTarget = nullptr);
     int32               TakeWeaponskillDamage(CCharEntity* PAttacker, CBattleEntity* PDefender, int32 damage, ATTACKTYPE attackType, DAMAGETYPE damageType, uint8 slot, bool primary, float tpMultiplier, uint16 bonusTP, float targetTPMultiplier);
     int32               TakeSkillchainDamage(CBattleEntity* PAttacker, CBattleEntity* PDefender, int32 lastSkillDamage, CBattleEntity* taChar);
     int32               TakeSpellDamage(CBattleEntity* PDefender, CCharEntity* PAttacker, CSpell* PSpell, int32 damage, ATTACKTYPE attackType, DAMAGETYPE damageType);
@@ -167,7 +168,7 @@ namespace battleutils
     bool                isValidSelfTargetWeaponskill(int wsid);
     bool                CanUseWeaponskill(CCharEntity* PChar, CWeaponSkill* PSkill);
     int16               CalculateBaseTP(int delay);
-    void                GenerateCureEnmity(CCharEntity* PSource, CBattleEntity* PTarget, int32 amount);
+    void                GenerateCureEnmity(CBattleEntity* PSource, CBattleEntity* PTarget, int32 amount);
     void                GenerateInRangeEnmity(CBattleEntity* PSource, int16 CE, int16 VE);
 
     CItemWeapon*        GetEntityWeapon(CBattleEntity* PEntity, SLOTTYPE Slot);
@@ -199,8 +200,8 @@ namespace battleutils
 
     int32               BreathDmgTaken(CBattleEntity* PDefender, int32 damage);
     int32               MagicDmgTaken(CBattleEntity* PDefender, int32 damage, ELEMENT element);
-    int32               PhysicalDmgTaken(CBattleEntity* PDefender, int32 damage, int16 damageType);
-    int32               RangedDmgTaken(CBattleEntity* PDefender, int32 damage, int16 damageType);
+    int32               PhysicalDmgTaken(CBattleEntity* PDefender, int32 damage, int16 damageType, bool IsCovered = false);
+    int32               RangedDmgTaken(CBattleEntity* PDefender, int32 damage, int16 damageType, bool IsCovered = false);
     int32               HandleSteamJacket(CBattleEntity* PDefender, int32 damage, int16 damageType);
 
     void                HandleIssekiganEnmityBonus(CBattleEntity* PDefender, CBattleEntity* PAttacker);
@@ -227,6 +228,7 @@ namespace battleutils
     void                assistTarget(CCharEntity* PChar, uint16 TargID);
 
     uint8               GetSpellAoEType(CBattleEntity* PCaster, CSpell* PSpell);
+    ELEMENT             GetDayElement();
     WEATHER             GetWeather(CBattleEntity* PEntity, bool ignoreScholar);
     WEATHER             GetWeather(CBattleEntity* PEntity, bool ignoreScholar, uint16 zoneWeather);
     bool                WeatherMatchesElement(WEATHER weather, uint8 element);
@@ -246,6 +248,10 @@ namespace battleutils
     int32               GetScaledItemModifier(CBattleEntity*, CItemEquipment*, Mod);
     DAMAGETYPE          GetSpikesDamageType(SUBEFFECT spikesType);
     DAMAGETYPE          GetEnspellDamageType(ENSPELL enspellType);
+
+    CBattleEntity*      GetCoverAbilityUser(CBattleEntity* PCoverAbilityTarget, CBattleEntity* PMob);
+    bool                IsMagicCovered(CCharEntity* PCoverAbilityUser);
+    void                ConvertDmgToMP(CBattleEntity* PDefender, int32 damage, bool IsCovered);
 };
 
 #endif

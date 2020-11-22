@@ -30,7 +30,14 @@ ENABLE_VOIDWATCH = 1 -- Not an expansion, but has its own storyline.
 -- FIELDS OF VALOR/Grounds of Valor settings
 ENABLE_FIELD_MANUALS  = 1 -- Enables Fields of Valor
 ENABLE_GROUNDS_TOMES  = 1 -- Enables Grounds of Valor
+ENABLE_SURVIVAL_GUIDE = 1 -- Enables Survival Guides
 REGIME_WAIT = 1 -- Make people wait till 00:00 game time as in retail. If it's 0, there is no wait time.
+FOV_REWARD_ALLIANCE = 0 -- Allow Fields of Valor rewards while being a member of an alliance. (default retail behavior: 0)
+GOV_REWARD_ALLIANCE = 1 -- Allow Grounds of Valor rewards while being a member of an alliance. (default retail behavior: 1)
+
+-- Records of Eminence
+ENABLE_ROE = 1
+ENABLE_ROE_TIMED = 1 -- Enable 4-hour timed records
 
 -- TREASURE CASKETS
 -- Retail droprate = 0.1 (10%) with no other effects active
@@ -62,6 +69,8 @@ GIL_RATE        = 1.000 -- Multiplies gil earned from quests.  Won't always disp
 BAYLD_RATE      = 1.000 -- Multiples bayld earned from quests.
 EXP_RATE        = 1.000 -- Multiplies exp earned from fov and quests.
 TABS_RATE       = 1.000 -- Multiplies tabs earned from fov.
+ROE_EXP_RATE    = 1.000 -- Multiplies exp earned from records of eminence.
+SPARKS_RATE     = 1.000 -- Multiplies sparks earned from records of eminence.
 CURE_POWER      = 1.000 -- Multiplies amount healed from Healing Magic, including the relevant Blue Magic.
 ELEMENTAL_POWER = 1.000 -- Multiplies damage dealt by Elemental and non-drain Dark Magic.
 DIVINE_POWER    = 1.000 -- Multiplies damage dealt by Divine Magic.
@@ -72,6 +81,9 @@ ITEM_POWER      = 1.000 -- Multiplies the effect of items such as Potions and Et
 WEAPON_SKILL_POWER  = 1.000 -- Multiplies damage dealt by Weapon Skills.
 WEAPON_SKILL_POINTS = 1.000 -- Multiplies points earned during weapon unlocking.
 USE_ADOULIN_WEAPON_SKILL_CHANGES = true -- true/false. Change to toggle new Adoulin weapon skill damage calculations
+
+-- TRUSTS
+ENABLE_TRUST_QUESTS = 1
 
 HARVESTING_BREAK_CHANCE = 33 -- % chance for the sickle to break during harvesting.  Set between 0 and 100.
 EXCAVATION_BREAK_CHANCE = 33 -- % chance for the pickaxe to break during excavation.  Set between 0 and 100.
@@ -96,6 +108,11 @@ CHEST_MIN_ILLUSION_TIME  = 1800  -- 30 minutes
 -- Use 0 for timed spawns, 1 for force pop only, 2 for both
 LandKingSystem_NQ = 1
 LandKingSystem_HQ = 1
+
+-- Multiplier to NM lottery spawn chance. (Default 1.0) eg. 0 = disable lottery spawns. -1 for always 100% chance.
+NM_LOTTERYCHANCE = 1.0
+-- Multiplier to NM lottery cooldown time (Default 1.0) eg. 2.0 = twice as long. 0 = no cooldowns.
+NM_LOTTERYCOOLDOWN = 1.0
 
 -- DYNAMIS SETTINGS
     BETWEEN_2DYNA_WAIT_TIME = 24       -- Hours before player can re-enter Dynamis. Default is 1 Earthday (24 hours).
@@ -126,7 +143,7 @@ ELEMENTAL_DEBUFF_DURATION = 120 -- base duration of elemental debuffs
 AQUAVEIL_COUNTER = 1  -- Base amount of hits Aquaveil absorbs to prevent spell interrupts. Retail is 1.
 ABSORB_SPELL_AMOUNT = 8 -- how much of a stat gets absorbed by DRK absorb spells - expected to be a multiple of 8.
 ABSORB_SPELL_TICK = 9 -- duration of 1 absorb spell tick
-SNEAK_INVIS_DURATION_MULTIPLIER = 1 -- multiplies duration of sneak,invis,deodorize to reduce player torture. 1 = retail behavior.
+SNEAK_INVIS_DURATION_MULTIPLIER = 1 -- multiplies duration of sneak, invis, deodorize to reduce player torture. 1 = retail behavior.
 USE_OLD_CURE_FORMULA = false -- true/false. if true, uses older cure formula (3*MND + VIT + 3*(healing skill/5)) // cure 6 will use the newer formula
 USE_OLD_MAGIC_DAMAGE = false -- true/false. if true, uses older magic damage formulas
 
@@ -140,7 +157,6 @@ HOMEPOINT_HEAL = 0 --Set to 1 if you want Home Points to heal you like in single
 RIVERNE_PORTERS = 120 -- Time in seconds that Unstable Displacements in Cape Riverne stay open after trading a scale.
 LANTERNS_STAY_LIT = 1200 -- time in seconds that lanterns in the Den of Rancor stay lit.
 ENABLE_COP_ZONE_CAP = 0 -- enable or disable lvl cap
-TIMEZONE_OFFSET = 9.0 -- Offset from UTC used to determine when "JP Midnight" is for the server.  Default is JST (+9.0).
 ALLOW_MULTIPLE_EXP_RINGS = 0 -- Set to 1 to remove ownership restrictions on the Chariot/Empress/Emperor Band trio.
 BYPASS_EXP_RING_ONE_PER_WEEK = 0 -- -- Set to 1 to bypass the limit of one ring per Conquest Tally Week.
 NUMBER_OF_DM_EARRINGS = 1 -- Number of earrings players can simultaneously own from Divine Might before scripts start blocking them (Default: 1)
@@ -151,3 +167,4 @@ DIG_GRANT_BURROW = 0 -- Set to 1 to grant burrow ability
 DIG_GRANT_BORE = 0 -- Set to 1 to grant bore ability
 ENM_COOLDOWN = 120  -- Number of hours before a player can obtain same KI for ENMs (default: 5 days)
 FORCE_SPAWN_QM_RESET_TIME = 300 -- Number of seconds the ??? remains hidden for after the despawning of the mob it force spawns.
+GOBBIE_BOX_MIN_AGE  = 45 -- Minimum character age in days before a character can sign up for Gobbie Mystery Box

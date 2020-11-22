@@ -17,6 +17,8 @@ zones[tpz.zone.WINDURST_WOODS] =
         KEYITEM_OBTAINED             = 6550, -- Obtained key item: <keyitem>.
         KEYITEM_LOST                 = 6551, -- Lost key item: <keyitem>.
         NOT_HAVE_ENOUGH_GIL          = 6552, -- You do not have enough gil.
+        YOU_MUST_WAIT_ANOTHER_N_DAYS = 6583, -- You must wait another ≺number≻ [day/days] to perform that action.
+        YOU_LEARNED_TRUST            = 6610, -- You learned Trust: <name>!
         HOMEPOINT_SET                = 6638, -- Home point set!
         YOU_ACCEPT_THE_MISSION       = 6731, -- You have accepted the mission.
         PEW_SAHBARAEF_DIALOG         = 6827, -- We can deliver goods to your residence or to the residences of your friends.
@@ -68,6 +70,8 @@ zones[tpz.zone.WINDURST_WOODS] =
         CLOUD_GOOD_TRADE             = 10109, -- Here, take 'em and scram. And don't say I ain't never did nothin' for you!
         CLOUD_BAD_ITEM               = 10110, -- What the hell is this junk!? Why don't you try bringin' what I asked for before I shove one of my sandals up your...nose!
         CHOCOBO_DIALOG               = 10404, -- Kweh!
+        TRRRADE_IN_SPARKS            = 13821, -- You want to trrrade in sparks, do you?
+        NOT_ENOUGH_SPARKS            = 13841, -- You do not possess enough sparks of eminence to complete the transaction.
     },
     mob =
     {

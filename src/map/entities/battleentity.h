@@ -22,6 +22,7 @@
 #ifndef _BATTLEENTITY_H
 #define _BATTLEENTITY_H
 
+#include <set>
 #include <vector>
 #include <unordered_map>
 
@@ -126,7 +127,7 @@ enum SKILLTYPE
     SKILL_WIND_INSTRUMENT = 42,
     SKILL_BLUE_MAGIC = 43,
     SKILL_GEOMANCY = 44,
-    SKILL_HND = 45,
+    SKILL_HANDBELL = 45,
     // 46-47 unused
     SKILL_FISHING = 48,
     SKILL_WOODWORKING = 49,
@@ -251,11 +252,11 @@ enum DAMAGETYPE
     DAMAGE_HTH = 4,
     DAMAGE_ELEMENTAL = 5,
     DAMAGE_FIRE = 6,
-    DAMAGE_EARTH = 7,
-    DAMAGE_WATER = 8,
-    DAMAGE_WIND = 9,
-    DAMAGE_ICE = 10,
-    DAMAGE_LIGHTNING = 11,
+    DAMAGE_ICE = 7,
+    DAMAGE_WIND = 8,
+    DAMAGE_EARTH = 9,
+    DAMAGE_LIGHTNING = 10,
+    DAMAGE_WATER = 11,
     DAMAGE_LIGHT = 12,
     DAMAGE_DARK = 13,
 };
@@ -410,7 +411,7 @@ enum IMMUNITY : uint16
     IMMUNITY_ELEGY = 0x200, // 512
     IMMUNITY_REQUIEM = 0x400, // 1024
     IMMUNITY_LIGHT_SLEEP = 0x800, // 2048
-    IMMUNITY_DARK_SLEEP = 01000, // 4096
+    IMMUNITY_DARK_SLEEP = 0x1000, // 4096
 };
 
 struct apAction_t
@@ -474,7 +475,9 @@ class CAttackState;
 class CWeaponSkillState;
 class CMagicState;
 class CDespawnState;
+class CRangeState;
 class CRecastContainer;
+class CNotorietyContainer;
 struct action_t;
 
 class CBattleEntity : public CBaseEntity
@@ -580,6 +583,7 @@ public:
             func(this, std::forward<Args>(args)...);
         }
     }
+
     template        <typename F, typename... Args>
     void            ForAlliance(F func, Args&&... args)
     {
@@ -631,6 +635,7 @@ public:
     virtual void OnChangeTarget(CBattleEntity* PTarget);
 
     virtual void OnAbility(CAbilityState&, action_t&) {}
+    virtual void OnRangedAttack(CRangeState&, action_t&) {}
     virtual void OnDeathTimer();
     virtual void OnRaise() {}
     virtual void TryHitInterrupt(CBattleEntity* PAttacker);
@@ -654,7 +659,8 @@ public:
 
     uint8			m_ModelSize;			    // размер модели сущности, для расчета дальности физической атаки
     ECOSYSTEM		m_EcoSystem;			    // эко-система сущности
-    CItemEquipment*	    m_Weapons[4];			    // четыре основных ячейки, используемыж для хранения оружия (только оружия)
+    CItemEquipment* m_Weapons[4];               // четыре основных ячейки, используемыж для хранения оружия (только оружия)
+    bool            m_dualWield;                // True/false depending on if the entity is using two weapons
 
     TraitList_t     TraitList;                  // список постянно активных способностей в виде указателей
 
@@ -665,12 +671,12 @@ public:
     CParty*			PParty;					    // описание группы, в которой состоит сущность
     CBattleEntity*	PPet;					    // питомец сущности
     CBattleEntity*	PMaster;				    // владелец/хозяин сущности (распространяется на все боевые сущности)
-    CBattleEntity*	PLastAttacker;
+    CBattleEntity*  PLastAttacker;
+    time_point      LastAttacked;
 
     std::unique_ptr<CStatusEffectContainer> StatusEffectContainer;
-    std::unique_ptr<CRecastContainer> PRecastContainer;         //
-
-
+    std::unique_ptr<CRecastContainer> PRecastContainer;
+    std::unique_ptr<CNotorietyContainer> PNotorietyContainer;
 
 private:
 

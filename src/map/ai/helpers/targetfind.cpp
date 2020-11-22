@@ -1,4 +1,4 @@
-/*
+﻿/*
 ===========================================================================
 
 Copyright (c) 2010-2015 Darkstar Dev Teams
@@ -24,6 +24,7 @@ along with this program.  If not, see http://www.gnu.org/licenses/
 #include <math.h>
 #include "../../entities/charentity.h"
 #include "../../entities/mobentity.h"
+#include "../../entities/trustentity.h"
 #include "../../packets/action.h"
 #include "../../alliance.h"
 #include "../../../common/mmo.h"
@@ -68,6 +69,7 @@ void CTargetFind::findSingleTarget(CBattleEntity* PTarget, uint8 flags)
 
 void CTargetFind::findWithinArea(CBattleEntity* PTarget, AOERADIUS radiusType, float radius, uint8 flags)
 {
+    TracyZoneScoped;
     m_findFlags = flags;
     m_radius = radius;
     m_zone = m_PBattleEntity->getZone();
@@ -93,12 +95,11 @@ void CTargetFind::findWithinArea(CBattleEntity* PTarget, AOERADIUS radiusType, f
     m_PTarget = PTarget;
     isPlayer = checkIsPlayer(m_PBattleEntity);
 
-    if (isPlayer){
+    if (isPlayer)
+    {
         // handle this as a player
-
         if (m_PMasterTarget->objtype == TYPE_PC)
         {
-
             // players will never need to add whole alliance
             m_findType = FIND_PLAYER_PLAYER;
 
@@ -115,22 +116,22 @@ void CTargetFind::findWithinArea(CBattleEntity* PTarget, AOERADIUS radiusType, f
                     addAllInParty(m_PMasterTarget, withPet);
                 }
             }
-            else {
+            else 
+            {
                 // just add myself
                 addEntity(m_PMasterTarget, withPet);
             }
-
         }
-        else {
+        else 
+        {
             m_findType = FIND_PLAYER_MONSTER;
             // special case to add all mobs in range
             addAllInMobList(m_PMasterTarget, false);
         }
-
     }
-    else {
+    else 
+    {
         // handle this as a mob
-
         if (m_PMasterTarget->objtype == TYPE_PC || m_PBattleEntity->allegiance == ALLEGIANCE_PLAYER){
             m_findType = FIND_MONSTER_PLAYER;
         }
@@ -170,13 +171,18 @@ void CTargetFind::findWithinCone(CBattleEntity* PTarget, float distance, float a
     m_findFlags = flags;
     m_conal = true;
 
-    // TODO: a point should be based on targets position
     m_APoint = &m_PBattleEntity->loc.p;
 
-    float halfAngle = (angle * (256.0f / 360.0f)) / 2.0f;
+    uint8 halfAngle = static_cast<uint8>((angle * (256.0f / 360.0f)) / 2.0f);
 
-    float rightAngle = rotationToRadian(m_APoint->rotation + (uint8)halfAngle);
-    float leftAngle = rotationToRadian(m_APoint->rotation - (uint8)halfAngle);
+    // Confirmation on the center of cones is still needed for mob skills; player skills seem to be facing angle
+    // uint8 angleToTarget = worldAngle(m_PBattleEntity->loc.p, PTarget->loc.p);
+    uint8 angleToTarget = m_APoint->rotation;
+    
+    // "Left" and "Right" are like the entity's face - "left" means "turning to the left" NOT "left when looking overhead"
+    // Remember that rotation increases when turning to the right, and decreases when turning to the left
+    float leftAngle = rotationToRadian(relativeAngle(angleToTarget, -halfAngle));
+    float rightAngle = rotationToRadian(relativeAngle(angleToTarget, halfAngle));
 
     // calculate end points for triangle
     m_BPoint.x = cosf((2 * (float)M_PI) - rightAngle) * distance + m_APoint->x;
@@ -185,7 +191,7 @@ void CTargetFind::findWithinCone(CBattleEntity* PTarget, float distance, float a
     m_CPoint.x = cosf((2 * (float)M_PI) - leftAngle) * distance + m_APoint->x;
     m_CPoint.z = sinf((2 * (float)M_PI) - leftAngle) * distance + m_APoint->z;
 
-    // ShowDebug("angle %f, rotation %f, distance %f, A (%f, %f) B (%f, %f) C (%f, %f)\n", angle, rightAngle, distance, m_APoint->x, m_APoint->z, m_BPoint.x, m_BPoint.z, m_CPoint.x, m_CPoint.z);
+    // ShowDebug("angle %f, left %f, right %f, distance %f, A (%f, %f) B (%f, %f) C (%f, %f)\n", angle, leftAngle, rightAngle, distance, m_APoint->x, m_APoint->z, m_BPoint.x, m_BPoint.z, m_CPoint.x, m_CPoint.z);
     // ShowDebug("Target: (%f, %f)\n", PTarget->loc.p.x, PTarget->loc.p.z);
 
     // precompute for next stage
@@ -219,6 +225,7 @@ void CTargetFind::addAllInMobList(CBattleEntity* PTarget, bool withPet)
 
 void CTargetFind::addAllInZone(CBattleEntity* PTarget, bool withPet)
 {
+    TracyZoneScoped;
 	zoneutils::GetZone(PTarget->getZone())->ForEachCharInstance(PTarget, [&](CCharEntity* PChar){
 		if (PChar){
 			addEntity(PChar, withPet);
@@ -227,6 +234,11 @@ void CTargetFind::addAllInZone(CBattleEntity* PTarget, bool withPet)
 	zoneutils::GetZone(PTarget->getZone())->ForEachMobInstance(PTarget, [&](CMobEntity* PMob){
 		if (PMob){
 			addEntity(PMob, withPet);
+		}
+	});
+    zoneutils::GetZone(PTarget->getZone())->ForEachTrustInstance(PTarget, [&](CTrustEntity* PTrust){
+		if (PTrust){
+			addEntity(PTrust, withPet);
 		}
 	});
 }
@@ -241,12 +253,20 @@ void CTargetFind::addAllInAlliance(CBattleEntity* PTarget, bool withPet)
 
 void CTargetFind::addAllInParty(CBattleEntity* PTarget, bool withPet)
 {
-
-    PTarget->ForParty([this, withPet](CBattleEntity* PMember)
+    if (PTarget->objtype == TYPE_PC)
     {
-        addEntity(PMember, withPet);
-    });
-
+        static_cast<CCharEntity*>(PTarget)->ForPartyWithTrusts([this, withPet](CBattleEntity* PMember)
+        {
+            addEntity(PMember, withPet);
+        });
+    }
+    else
+    {
+        PTarget->ForParty([this, withPet](CBattleEntity* PMember)
+        {
+            addEntity(PMember, withPet);
+        });
+    }
 }
 
 void CTargetFind::addAllInEnmityList()
@@ -267,6 +287,44 @@ void CTargetFind::addAllInEnmityList()
     }
 }
 
+void CTargetFind::addAllInRange(CBattleEntity* PTarget, float radius, uint8 allegiance)
+{
+    m_radius = radius;
+    m_PRadiusAround = &(m_PBattleEntity->loc.p);
+
+    if (allegiance == ALLEGIANCE_PLAYER)
+    {
+        if (PTarget && PTarget->objtype == TYPE_PC)
+        {
+            CCharEntity* PChar = static_cast<CCharEntity*>(PTarget);
+            for (auto& list : { PChar->SpawnPCList, PChar->SpawnPETList })
+            {
+                for (auto& pair : list)
+                {
+                    CBattleEntity* PBattleEntity = static_cast<CBattleEntity*>(pair.second);
+                    if (PBattleEntity &&
+                        isWithinArea(&(PBattleEntity->loc.p)) &&
+                        !PBattleEntity->isDead() &&
+                        PBattleEntity->allegiance == ALLEGIANCE_PLAYER)
+                    {
+                        m_targets.push_back(PBattleEntity);
+                    }
+                }
+            }
+        }
+        else
+        {
+            zoneutils::GetZone(PTarget->getZone())->ForEachCharInstance(PTarget, [&](CCharEntity* PChar)
+            {
+                if (PChar && isWithinArea(&(PChar->loc.p)) && !PChar->isDead())
+                {
+                    m_targets.push_back(PChar);
+                }
+            });
+        }
+    }
+}
+
 void CTargetFind::addEntity(CBattleEntity* PTarget, bool withPet)
 {
     if (validEntity(PTarget)){
@@ -278,7 +336,6 @@ void CTargetFind::addEntity(CBattleEntity* PTarget, bool withPet)
     {
         m_targets.push_back(PTarget->PPet);
     }
-
 }
 
 CBattleEntity* CTargetFind::findMaster(CBattleEntity* PTarget)
@@ -368,6 +425,10 @@ bool CTargetFind::validEntity(CBattleEntity* PTarget)
 
         }
         else if (m_findType == FIND_MONSTER_MONSTER || m_findType == FIND_PLAYER_PLAYER){
+            if (PTarget->objtype == TYPE_TRUST)
+            {
+                return true;
+            }
             return false;
         }
     }
@@ -463,7 +524,7 @@ bool CTargetFind::canSee(position_t* point)
 
 CBattleEntity* CTargetFind::getValidTarget(uint16 actionTargetID, uint16 validTargetFlags)
 {
-    CBattleEntity* PTarget = (CBattleEntity*)m_PBattleEntity->GetEntity(actionTargetID, TYPE_MOB | TYPE_PC | TYPE_PET);
+    CBattleEntity* PTarget = (CBattleEntity*)m_PBattleEntity->GetEntity(actionTargetID, TYPE_MOB | TYPE_PC | TYPE_PET | TYPE_TRUST);
 
     if (PTarget == nullptr)
     {

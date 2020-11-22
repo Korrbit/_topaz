@@ -10,20 +10,23 @@
 
 require("scripts/globals/settings")
 require("scripts/globals/status")
+require("scripts/globals/magic")
 require("scripts/globals/monstertpmoves")
+
 
 ---------------------------------------------
 
-function onMobSkillCheck(target,mob,skill)
+function onMobSkillCheck(target, mob, skill)
     return 0
 end
 
 function onMobWeaponSkill(target, mob, skill)
-    local element = math.random(6,9)
+    local day = math.random(0, 3)
+    local damage_type = tpz.damageType.FIRE + tpz.magic.dayElement[day] - 1
     local dmgmod = 1
     local accmod = 1
-    local info = MobMagicalMove(mob,target,skill,mob:getWeaponDmg() * 5,accmod,dmgmod,TP_MAB_BONUS,1)
-    local dmg = MobFinalAdjustments(info.dmg,mob,skill,target,tpz.attackType.MAGICAL,element,MOBPARAM_IGNORE_SHADOWS)
-    target:takeDamage(dmg, mob, tpz.attackType.MAGICAL, element)
+    local info = MobMagicalMove(mob, target, skill, mob:getWeaponDmg() * 5, accmod, dmgmod, TP_MAB_BONUS, 1)
+    local dmg = MobFinalAdjustments(info.dmg, mob,skill, target,tpz.attackType.MAGICAL, damage_type, MOBPARAM_IGNORE_SHADOWS)
+    target:takeDamage(dmg, mob, tpz.attackType.MAGICAL, damage_type)
     return dmg
 end

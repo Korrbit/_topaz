@@ -2,7 +2,7 @@
 -- Area: Cape Teriggan
 --   NM: Kreutzet
 -----------------------------------
-require("scripts/globals/weather")
+require("scripts/globals/world")
 -----------------------------------
 
 function onMobRoam(mob)
@@ -39,7 +39,7 @@ end
 function onMobDespawn(mob)
     -- Set Kruetzet's spawnpoint and respawn time (9-12 hours)
     UpdateNMSpawnPoint(mob:getID())
-    mob:setRespawnTime(math.random(32400,43200))
-    mob:setLocalVar("cooldown",os.time() + mob:getRespawnTime()/1000)
+    mob:setRespawnTime(math.random(32400, 43200))
+    mob:setLocalVar("cooldown", os.time() + mob:getRespawnTime()/1000)
     DisallowRespawn(mob:getID(), true) -- prevents accidental 'pop' during no wind weather and immediate despawn
 end

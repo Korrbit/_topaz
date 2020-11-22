@@ -29,6 +29,7 @@ along with this program.  If not, see http://www.gnu.org/licenses/
 #include <deque>
 #include <mutex>
 #include <bitset>
+#include <unordered_map>
 
 #include "battleentity.h"
 #include "petentity.h"
@@ -141,6 +142,13 @@ struct GearSetMod_t
     uint16	modValue;
 };
 
+enum CHAR_SUBSTATE
+{
+    SUBSTATE_NONE = 0,
+    SUBSTATE_IN_CS,
+    SUBSTATE_LAST,
+};
+
 /************************************************************************
 *                                                                       *
 *                                                                       *
@@ -177,6 +185,7 @@ public:
 
     nameflags_t				nameflags;						// флаги перед именем персонажа
     nameflags_t             menuConfigFlags;                // These flags are used for MenuConfig packets. Some nameflags values are duplicated.
+    uint32                  lastOnline {0};                 // UTC Unix Timestamp of the last time char zoned or logged out
     bool                    isNewPlayer();                  // Checks if new player bit is unset.
 
     profile_t				profile;						// профиль персонажа (все, что связывает города и персонажа)
@@ -201,6 +210,8 @@ public:
     uint8					m_WeaponSkills[32];
     questlog_t				m_questLog[MAX_QUESTAREA];		// список всех квестов
     missionlog_t			m_missionLog[MAX_MISSIONAREA];	// список миссий
+    eminencelog_t           m_eminenceLog;                  // Record of Eminence log
+    eminencecache_t         m_eminenceCache;                // Caching data for Eminence lookups
     assaultlog_t			m_assaultLog;					// список assault миссий
     campaignlog_t			m_campaignLog;					// список campaign миссий
     uint32					m_lastBcnmTimePrompt;			// the last message prompt in seconds
@@ -213,18 +224,36 @@ public:
     CAutomatonEntity*       PAutomaton;                     // Automaton statistics
 
     std::vector<CTrustEntity*> PTrusts; // Active trusts
+    template        <typename F, typename... Args>
+    void            ForPartyWithTrusts(F func, Args&&... args)
+    {
+        if (PParty) {
+            for (auto PMember : PParty->members) {
+                func(PMember, std::forward<Args>(args)...);
+            }
+            for (auto PMember : PParty->members) {
+                for (auto PTrust : static_cast<CCharEntity*>(PMember)->PTrusts) {
+                    func(PTrust, std::forward<Args>(args)...);
+                }
+            }
+        }
+        else {
+            func(this, std::forward<Args>(args)...);
+            for (auto PTrust : this->PTrusts) {
+                func(PTrust, std::forward<Args>(args)...);
+            }
+        }
+    }
+
     CBattleEntity*	PClaimedMob;
 
+    // These missions do not need a list of completed, because client automatically
+    // displays earlier missions completed
 
-    // Эти миссии не нуждаются в списке пройденных, т.к. клиент автоматически
-    // отображает более ранние миссии выплненными
-
-    uint16			  m_copCurrent;					// текущая миссия Chains of Promathia
-    uint16			  m_acpCurrent;					// текущая миссия A Crystalline Prophecy
-    uint16			  m_mkeCurrent;					// текущая миссия A Moogle Kupo d'Etat
-    uint16			  m_asaCurrent;					// текущая миссия A Shantotto Ascension
-
-    // TODO: половина этого массива должна храниться в char_vars, а не здесь, т.к. эта информация не отображается в интерфейсе клиента и сервер не проводит с ними никаких операций
+    uint16			  m_copCurrent;					// current mission of Chains of Promathia
+    uint16			  m_acpCurrent;					// current mission of A Crystalline Prophecy
+    uint16			  m_mkeCurrent;					// current mission of A Moogle Kupo d'Etat
+    uint16			  m_asaCurrent;					// current mission of A Shantotto Ascension
 
     //currency_t        m_currency;                 // conquest points, imperial standing points etc
     Teleport_t	      teleport;					    // Outposts, Runic Portals, Homepoints, Survival Guides, Maws, etc
@@ -259,10 +288,11 @@ public:
 
     CBaseEntity*	  PWideScanTarget;				// wide scane цель
 
-    SpawnIDList_t	  SpawnPCList;					// список видимых персонажей
-    SpawnIDList_t	  SpawnMOBList;					// список видимых монстров
-    SpawnIDList_t	  SpawnPETList;					// список видимых питомцев
-    SpawnIDList_t	  SpawnNPCList;					// список видимых npc
+    SpawnIDList_t	  SpawnPCList;					// list of visible characters
+    SpawnIDList_t	  SpawnMOBList;					// list of visible monsters
+    SpawnIDList_t	  SpawnPETList;					// list of visible pets
+    SpawnIDList_t	  SpawnTRUSTList;				// list of visible trust
+    SpawnIDList_t	  SpawnNPCList;					// list of visible npc's
 
     void			  SetName(int8* name);			// устанавливаем имя персонажа (имя ограничивается 15-ю символами)
 
@@ -310,12 +340,16 @@ public:
     bool              m_EffectsChanged;
     time_point        m_LastSynthTime;
 
+    CHAR_SUBSTATE     m_Substate;
+
     int16 addTP(int16 tp) override;
     int32 addHP(int32 hp) override;
     int32 addMP(int32 mp) override;
 
     std::vector<GearSetMod_t> m_GearSetMods;		// The list of gear set mods currently applied to the character.
     std::vector<AuctionHistory_t> m_ah_history;		// AH history list (in the future consider using UContainer)
+
+    std::unordered_map<uint16, uint32> m_PacketRecievedTimestamps;
 
     void SetPlayTime(uint32 playTime);				// Set playtime
     uint32 GetPlayTime(bool needUpdate = true);		// Get playtime
@@ -347,6 +381,8 @@ public:
     void SetDeathTimestamp(uint32 timestamp);
     int32 GetSecondsElapsedSinceDeath();
     int32 GetTimeRemainingUntilDeathHomepoint();  // Amount of time remaining before the player should be forced back to homepoint while dead
+
+    int32 GetTimeCreated();
 
     void SetMoghancement(uint16 moghancementID);
     bool hasMoghancement(uint16 moghancementID);

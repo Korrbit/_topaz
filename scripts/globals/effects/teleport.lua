@@ -6,13 +6,13 @@
 require("scripts/globals/teleports")
 -----------------------------------
 
-function onEffectGain(target,effect)
+function onEffectGain(target, effect)
 end
 
-function onEffectTick(target,effect)
+function onEffectTick(target, effect)
 end
 
-function onEffectLose(target,effect)
+function onEffectLose(target, effect)
     local destination = effect:getPower()
 
     if (target:isMob()) then
@@ -28,6 +28,8 @@ function onEffectLose(target,effect)
         tpz.teleport.toLeader(target)
     elseif (destination == tpz.teleport.id.HOME_NATION) then
         tpz.teleport.toHomeNation(target)
+    elseif (destination == tpz.teleport.id.RETRACE) then
+        tpz.teleport.toAlliedNation(target)
     else
         tpz.teleport.to(target, destination)
     end

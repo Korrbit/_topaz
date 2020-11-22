@@ -1,4 +1,4 @@
-/*
+﻿/*
 ===========================================================================
 
   Copyright (c) 2010-2015 Darkstar Dev Teams
@@ -22,6 +22,7 @@
 #include "mob_spell_container.h"
 #include "utils/battleutils.h"
 #include "status_effect_container.h"
+#include "recast_container.h"
 #include "mob_modifier.h"
 
 CMobSpellContainer::CMobSpellContainer(CMobEntity* PMob)
@@ -35,6 +36,7 @@ void CMobSpellContainer::ClearSpells()
     m_gaList.clear();
     m_damageList.clear();
     m_buffList.clear();
+    m_debuffList.clear();
     m_healList.clear();
     m_naList.clear();
     m_hasSpells = false;
@@ -55,20 +57,28 @@ void CMobSpellContainer::AddSpell(SpellID spellId)
     // add spell to correct vector
     // try to add it to ga list first
     uint8 aoe = battleutils::GetSpellAoEType(m_PMob, spell);
-    if(aoe > 0 && spell->canTargetEnemy()){
-
+    if(aoe > 0 && spell->canTargetEnemy())
+    {
         m_gaList.push_back(spellId);
-
     }
-    else if(spell->canTargetEnemy()){
+    else if (spell->isSevere())
+    {
+        // select spells like death and impact
+        m_severeList.push_back(spellId);
+    }
+    else if (spell->canTargetEnemy() && !spell->isSevere())
+    {
         // add to damage list
         m_damageList.push_back(spellId);
-
     }
-    else if(spell->isNa()){
+    else if (spell->isDebuff())
+    {
+        m_debuffList.push_back(spellId);
+    }
+    else if(spell->isNa())
+    {
         // na spell and erase
         m_naList.push_back(spellId);
-
     }
     else if(spell->isHeal()){ // includes blue mage healing spells, wild carrot etc
    // add to healing
@@ -83,6 +93,70 @@ void CMobSpellContainer::AddSpell(SpellID spellId)
     else {
         ShowDebug("Where does this spell go? %d\n", static_cast<uint16>(spellId));
     }
+}
+
+void CMobSpellContainer::RemoveSpell(SpellID spellId)
+{
+    auto findAndRemove = [](std::vector<SpellID>& list, SpellID id)
+    {
+        list.erase(std::remove(list.begin(), list.end(), id), list.end());
+    };
+
+    findAndRemove(m_gaList, spellId);
+    findAndRemove(m_damageList, spellId);
+    findAndRemove(m_buffList, spellId);
+    findAndRemove(m_debuffList, spellId);
+    findAndRemove(m_healList, spellId);
+    findAndRemove(m_naList, spellId);
+
+    m_hasSpells = !(m_gaList.empty() && m_damageList.empty() && m_buffList.empty() && m_debuffList.empty() && m_healList.empty() && m_naList.empty());
+}
+
+std::optional<SpellID> CMobSpellContainer::GetAvailable(SpellID spellId)
+{
+    auto spell = spell::GetSpell(spellId);
+    bool hasEnoughMP = spell->getMPCost() <= m_PMob->health.mp;
+    bool isNotInRecast = !m_PMob->PRecastContainer->Has(RECAST_MAGIC, static_cast<uint16>(spellId));
+
+    return  (isNotInRecast && hasEnoughMP) ? std::optional<SpellID>(spellId) : std::nullopt;
+}
+
+std::optional<SpellID> CMobSpellContainer::GetBestAvailable(SPELLFAMILY family)
+{
+    std::vector<SpellID> matches;
+    auto searchInList = [&](std::vector<SpellID>& list)
+    {
+        for (auto id : list)
+        {
+            auto spell = spell::GetSpell(id);
+            bool sameFamily = (family == SPELLFAMILY_NONE) ? true : spell->getSpellFamily() == family;
+            bool hasEnoughMP = spell->getMPCost() <= m_PMob->health.mp;
+            bool isNotInRecast = !m_PMob->PRecastContainer->Has(RECAST_MAGIC, static_cast<uint16>(id));
+            if (sameFamily && hasEnoughMP && isNotInRecast)
+            {
+                matches.push_back(id);
+            }
+        };
+    };
+
+    // TODO: After a good refactoring, this sort of hack won't be needed...
+    if (family == SPELLFAMILY_NONE)
+    {
+        searchInList(m_damageList);
+    }
+    else
+    {
+        searchInList(m_gaList);
+        searchInList(m_damageList);
+        searchInList(m_buffList);
+        searchInList(m_debuffList);
+        searchInList(m_healList);
+        searchInList(m_naList);
+    }
+
+    // Assume the highest ID is the best (back of the vector)
+    // TODO: These will need to be organised by family, then merged
+    return (!matches.empty()) ? std::optional<SpellID>{ matches.back() } : std::nullopt;
 }
 
 bool CMobSpellContainer::HasSpells() const
@@ -136,6 +210,12 @@ std::optional<SpellID> CMobSpellContainer::GetSpell()
         }
     }
 
+    // try something really destructive
+    if (HasSevereSpells() && tpzrand::GetRandomNumber(100) < m_PMob->getMobMod(MOBMOD_SEVERE_SPELL_CHANCE))
+    {
+        return GetSevereSpell();
+    }
+
     // try ga spell
     if(HasGaSpells() && tpzrand::GetRandomNumber(100) < m_PMob->getMobMod(MOBMOD_GA_CHANCE)){
         return GetGaSpell();
@@ -151,6 +231,11 @@ std::optional<SpellID> CMobSpellContainer::GetSpell()
     {
         // try damage spell
         return GetDamageSpell();
+    }
+
+    if (HasDebuffSpells())
+    {
+        return GetDebuffSpell();
     }
 
     if(HasBuffSpells())
@@ -191,6 +276,13 @@ std::optional<SpellID> CMobSpellContainer::GetBuffSpell()
     if(m_buffList.empty()) return {};
 
     return m_buffList[tpzrand::GetRandomNumber(m_buffList.size())];
+}
+
+std::optional<SpellID> CMobSpellContainer::GetDebuffSpell()
+{
+    if (m_debuffList.empty()) return {};
+
+    return m_debuffList[tpzrand::GetRandomNumber(m_debuffList.size())];
 }
 
 std::optional<SpellID> CMobSpellContainer::GetHealSpell()
@@ -236,6 +328,13 @@ std::optional<SpellID> CMobSpellContainer::GetNaSpell()
     return {};
 }
 
+std::optional<SpellID> CMobSpellContainer::GetSevereSpell()
+{
+    if(m_severeList.empty()) return {};
+
+    return m_severeList[tpzrand::GetRandomNumber(m_severeList.size())];
+}
+
 bool CMobSpellContainer::HasGaSpells() const
 {
     return !m_gaList.empty();
@@ -261,9 +360,18 @@ bool CMobSpellContainer::HasNaSpells() const
     return !m_naList.empty();
 }
 
+bool CMobSpellContainer::HasDebuffSpells() const
+{
+    return !m_debuffList.empty();
+}
+
+bool CMobSpellContainer::HasSevereSpells() const
+{
+    return !m_severeList.empty();
+}
+
 bool CMobSpellContainer::HasNaSpell(SpellID spellId) const
 {
-
     for(auto spell : m_naList)
     {
         if(spell == spellId)

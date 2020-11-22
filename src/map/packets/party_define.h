@@ -1,4 +1,4 @@
-/*
+﻿/*
 ===========================================================================
 
   Copyright (c) 2010-2015 Darkstar Dev Teams
@@ -37,8 +37,7 @@ class CParty;
 class CPartyDefinePacket : public CBasicPacket
 {
 public:
-
-	CPartyDefinePacket(CParty* PParty);
+    CPartyDefinePacket(CParty* PParty, bool loadTrust = false);
 };
 
 #endif

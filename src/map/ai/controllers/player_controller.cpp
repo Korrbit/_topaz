@@ -1,4 +1,4 @@
-/*
+﻿/*
 ===========================================================================
 
 Copyright (c) 2010-2015 Darkstar Dev Teams
@@ -33,6 +33,7 @@ along with this program.  If not, see http://www.gnu.org/licenses/
 #include "../../latent_effect_container.h"
 #include "../../status_effect_container.h"
 #include "../../weapon_skill.h"
+#include "../../roe.h"
 
 CPlayerController::CPlayerController(CCharEntity* _PChar) :
     CController(_PChar)
@@ -67,7 +68,7 @@ bool CPlayerController::Engage(uint16 targid)
     {
         if (distance(PChar->loc.p, PTarget->loc.p) < 30)
         {
-            if (m_LastAttackTime + std::chrono::milliseconds(PChar->GetWeaponDelay(false)) < server_clock::now())
+            if (m_lastAttackTime + std::chrono::milliseconds(PChar->GetWeaponDelay(false)) < server_clock::now())
             {
                 if (CController::Engage(targid))
                 {
@@ -186,11 +187,14 @@ bool CPlayerController::WeaponSkill(uint16 targid, uint16 wsid)
 
         if (PTarget)
         {
-            if (!isFaceing(PChar->loc.p, PTarget->loc.p, 40) && PTarget != PChar)
+            if (!facing(PChar->loc.p, PTarget->loc.p, 64) && PTarget != PChar)
             {
                 PChar->pushPacket(new CMessageBasicPacket(PChar, PTarget, 0, 0, MSGBASIC_CANNOT_SEE));
                 return false;
             }
+            roeutils::event(ROE_WSKILL_USE, PChar, RoeDatagramList{});
+
+            m_lastWeaponSkill = PWeaponSkill;
 
             return CController::WeaponSkill(targid, wsid);
         }
@@ -206,9 +210,14 @@ bool CPlayerController::WeaponSkill(uint16 targid, uint16 wsid)
     return false;
 }
 
-void CPlayerController::setLastAttackTime(time_point _LastAttackTime)
+time_point CPlayerController::getLastAttackTime()
 {
-    m_LastAttackTime = _LastAttackTime;
+    return m_lastAttackTime;
+}
+
+void CPlayerController::setLastAttackTime(time_point _lastAttackTime)
+{
+    m_lastAttackTime = _lastAttackTime;
 }
 
 void CPlayerController::setLastErrMsgTime(time_point _LastErrMsgTime)
@@ -219,4 +228,9 @@ void CPlayerController::setLastErrMsgTime(time_point _LastErrMsgTime)
 time_point CPlayerController::getLastErrMsgTime()
 {
     return m_errMsgTime;
+}
+
+CWeaponSkill* CPlayerController::getLastWeaponSkill()
+{
+    return m_lastWeaponSkill;
 }

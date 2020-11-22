@@ -1,4 +1,4 @@
-/*
+﻿/*
 ===========================================================================
 
   Copyright (c) 2010-2015 Darkstar Dev Teams
@@ -213,6 +213,17 @@ namespace itemutils
         }
         ShowWarning(CL_CYAN"ItemID %u too big\n" CL_RESET, ItemID);
         return nullptr;
+    }
+
+    /************************************************************************
+    *                                                                       *
+    *  True if pointer points to a read-only g_pItemList array item         *
+    *                                                                       *
+    ************************************************************************/
+
+    bool IsItemPointer(CItem* item)
+    {
+        return g_pItemList[item->getID()] == item;
     }
 
     /************************************************************************
@@ -524,6 +535,7 @@ namespace itemutils
 
     void Initialize()
     {
+        TracyZoneScoped;
         LoadItemList();
         LoadDropList();
         LoadLootList();
@@ -552,11 +564,13 @@ namespace itemutils
         for(int32 ItemID = 0; ItemID < MAX_ITEMID; ++ItemID)
         {
             delete g_pItemList[ItemID];
+            g_pItemList[ItemID] = nullptr;
         }
 
         for(int32 DropID = 0; DropID < MAX_DROPID; ++DropID)
         {
             delete g_pDropList[DropID];
+            g_pDropList[DropID] = nullptr;
         }
     }
 }; // namespace itemutils

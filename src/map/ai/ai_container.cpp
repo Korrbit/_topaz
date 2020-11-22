@@ -1,4 +1,4 @@
-/*
+﻿/*
 ===========================================================================
 
 Copyright (c) 2010-2015 Darkstar Dev Teams
@@ -255,7 +255,7 @@ bool CAIContainer::Internal_Ability(uint16 targetid, uint16 abilityid)
 
 bool CAIContainer::Internal_RangedAttack(uint16 targetid)
 {
-    auto entity {dynamic_cast<CCharEntity*>(PEntity)};
+    auto entity {dynamic_cast<CBattleEntity*>(PEntity)};
     if (entity)
         return ChangeState<CRangeState>(entity, targetid);
     return false;
@@ -334,6 +334,7 @@ void CAIContainer::Reset()
 
 void CAIContainer::Tick(time_point _tick)
 {
+    TracyZoneScoped;
     m_PrevTick = m_Tick;
     m_Tick = _tick;
 

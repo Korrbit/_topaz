@@ -136,6 +136,7 @@ tpz.quest.id =
         ATELLOUNE_S_LAMENT              = 114,
         THICK_SHELLS                    = 117, -- ± --
         FOREST_FOR_THE_TREES            = 118,
+        TRUST_SANDORIA                  = 119, -- ± --
     },
 
     -----------------------------------
@@ -234,6 +235,8 @@ tpz.quest.id =
         FULLY_MENTAL_ALCHEMIST          = 88,
         SYNERGUSTIC_PURSUITS            = 89,
         THE_WONDROUS_WHATCHAMACALLIT    = 90,
+        SYNERGISTIC_SUPPORT             = 91,
+        TRUST_BASTOK                    = 92, -- ± --
     },
 
     -----------------------------------
@@ -330,6 +333,7 @@ tpz.quest.id =
         WAKING_DREAMS                   = 93, -- + --
         LURE_OF_THE_WILDCAT             = 94, -- + --
         BABBAN_NY_MHEILLEA              = 95,
+        TRUST_WINDURST                  = 96, -- + --
     },
 
     -----------------------------------
@@ -470,7 +474,7 @@ tpz.quest.id =
         EXPANDING_HORIZONS              = 134,
         BEYOND_THE_STARS                = 135,
         DORMANT_POWERS_DISLODGED        = 136,
-        BEYOND_INFINITY                 = 137,
+        BEYOND_INFINITY                 = 137, -- + --
         A_TRIAL_IN_TANDEM               = 160,
         A_TRIAL_IN_TANDEM_REDUX         = 161,
         YET_ANOTHER_TRIAL_IN_TANDEM     = 162,
@@ -480,7 +484,9 @@ tpz.quest.id =
         MARTIAL_MASTERY                 = 167,
         VW_OP_115_VALKURM_DUSTER        = 168,
         VW_OP_118_BUBURIMU_SQUALL       = 169,
-        PRELUDE_TO_PUISSANCE            = 170,
+        PRELUDE_TO_PUISSANCE            = 170, -- + --
+
+        FULL_SPEED_AHEAD                = 179, -- + --
     },
 
     -----------------------------------
@@ -654,9 +660,9 @@ tpz.quest.id =
         TOTOROONS_TREASURE_HUNT         = 18,
         WHAT_FRIENDS_ARE_FOR            = 19,
         ROCK_BOTTOM                     = 20,
-        BEGINNINGS                      = 21,
-        OMENS                           = 22,
-        TRANSFORMATIONS                 = 23,
+        BEGINNINGS                      = 21, -- + --
+        OMENS                           = 22, -- + --
+        TRANSFORMATIONS                 = 23, -- + --
         EQUIPPED_FOR_ALL_OCCASIONS      = 24, -- + --
         NAVIGATING_THE_UNFRIENDLY_SEAS  = 25, -- + --
         AGAINST_ALL_ODDS                = 26,

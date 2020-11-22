@@ -6,19 +6,19 @@
 local ID = require("scripts/zones/Phomiuna_Aqueducts/IDs")
 -----------------------------------
 
-function onTrade(player,npc,trade)
+function onTrade(player, npc, trade)
 end
 
-function onTrigger(player,npc)
+function onTrigger(player, npc)
 
     local DoorOffset = npc:getID()
 
     player:messageSpecial(ID.text.LAMP_OFFSET+6) -- light lamp
     npc:openDoor(7) -- lamp animation
 
-    local element = VanadielDayElement()
+    local day = VanadielDayOfTheWeek()
 
-    if (element == 6 or element == 7) then -- lightday or darkday
+    if (day == tpz.day.LIGHTSDAY or day == tpz.day.DARKSDAY) then
         if (GetNPCByID(DoorOffset+1):getAnimation() == 8) then -- lamp dark open?
             GetNPCByID(DoorOffset-5):openDoor(15) -- Open Door _0rk
         end
@@ -26,8 +26,8 @@ function onTrigger(player,npc)
 
 end
 
-function onEventUpdate(player,csid,option)
+function onEventUpdate(player, csid, option)
 end
 
-function onEventFinish(player,csid,option)
+function onEventFinish(player, csid, option)
 end

@@ -13,10 +13,10 @@ require("scripts/globals/status")
 require("scripts/globals/monstertpmoves")
 
 ---------------------------------------------
-function onMobSkillCheck(target,mob,skill)
-    if (target:isBehind(mob, 48) == true) then
+function onMobSkillCheck(target, mob, skill)
+    if not target:isInfront(mob, 128) then
         return 1
-    elseif (mob:AnimationSub() ~= 0) then
+    elseif mob:AnimationSub() == 1 then
         return 1
     end
     return 0
@@ -28,8 +28,8 @@ function onMobWeaponSkill(target, mob, skill)
     MobStatusEffectMove(mob, target, typeEffect, 60, 0, 30)
 
     local dmgmod = 1
-    local info = MobMagicalMove(mob,target,skill,mob:getWeaponDmg()*5,tpz.magic.ele.WIND,dmgmod,TP_NO_EFFECT)
-    local dmg = MobFinalAdjustments(info.dmg,mob,skill,target,tpz.attackType.MAGICAL,tpz.damageType.WIND,MOBPARAM_WIPE_SHADOWS)
+    local info = MobMagicalMove(mob, target, skill, mob:getWeaponDmg()*5, tpz.magic.ele.WIND, dmgmod, TP_NO_EFFECT)
+    local dmg = MobFinalAdjustments(info.dmg, mob, skill, target, tpz.attackType.MAGICAL, tpz.damageType.WIND, MOBPARAM_WIPE_SHADOWS)
     target:takeDamage(dmg, mob, tpz.attackType.MAGICAL, tpz.damageType.WIND)
     return dmg
 end

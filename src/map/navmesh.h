@@ -1,4 +1,4 @@
-/*
+﻿/*
 ===========================================================================
 
   Copyright (c) 2010-2015 Darkstar Dev Teams
@@ -34,10 +34,9 @@ The NavMesh class will load and find paths given a start point and end point.
 #include <vector>
 #include <memory>
 
-#define MAX_NAV_POLYS 256
-
-static const int NAVMESHSET_MAGIC = 'M' << 24 | 'S' << 16 | 'E' << 8 | 'T'; //'MSET';
-static const int NAVMESHSET_VERSION = 1;
+static constexpr int MAX_NAV_POLYS = 256;
+static constexpr int NAVMESHSET_MAGIC = 'M' << 24 | 'S' << 16 | 'E' << 8 | 'T'; //'MSET';
+static constexpr int NAVMESHSET_VERSION = 1;
 
 struct NavMeshSetHeader
 {
@@ -64,7 +63,6 @@ public:
     static void ToDetourPos(float* out);
     static void ToDetourPos(position_t* out);
 
-public:
     CNavMesh(uint16 zoneID);
     ~CNavMesh();
 
@@ -74,11 +72,15 @@ public:
     std::vector<position_t> findPath(const position_t& start, const position_t& end);
     std::pair<int16, position_t> findRandomPosition(const position_t& start, float maxRadius);
 
-    // returns true if the point is in water
+    // Returns true if the point is in water
     bool inWater(const position_t& point);
-
-    // returns true if no wall was hit
-    bool raycast(const position_t& start, const position_t& end);
+    
+    // Returns true if no wall was hit
+    //
+    // Recast Detour Docs:
+    // Casts a 'walkability' ray along the surface of the navigation mesh from the start position toward the end position.
+    // Note: This is not a point-to-point in 3D space calculation, it is 2D across the navmesh!
+    bool raycast(const position_t& start, const position_t& end, bool lookOffMesh);
 
     bool validPosition(const position_t& position);
 

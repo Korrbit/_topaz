@@ -1,4 +1,4 @@
-/*
+﻿/*
 ===========================================================================
 
 Copyright (c) 2010-2015 Darkstar Dev Teams
@@ -24,6 +24,7 @@ along with this program.  If not, see http://www.gnu.org/licenses/
 #include "latent_effect.h"
 #include "entities/charentity.h"
 #include "entities/battleentity.h"
+#include "entities/trustentity.h"
 #include "utils/battleutils.h"
 #include "utils/zoneutils.h"
 #include "conquest_system.h"
@@ -359,6 +360,7 @@ void CLatentEffectContainer::CheckLatentsDay()
 ************************************************************************/
 void CLatentEffectContainer::CheckLatentsMoonPhase()
 {
+    TracyZoneScoped;
     ProcessLatentEffects([this](CLatentEffect& latentEffect)
     {
         switch (latentEffect.GetConditionsID())
@@ -410,6 +412,7 @@ void CLatentEffectContainer::CheckLatentsWeekDay()
 ************************************************************************/
 void CLatentEffectContainer::CheckLatentsHours()
 {
+    TracyZoneScoped;
     ProcessLatentEffects([this](CLatentEffect& latentEffect)
     {
         switch (latentEffect.GetConditionsID())
@@ -654,6 +657,7 @@ void CLatentEffectContainer::CheckLatentsTargetChange()
         {
         case LATENT_SIGNET_BONUS:
         case LATENT_VS_ECOSYSTEM:
+        case LATENT_VS_FAMILY:
             return ProcessLatentEffect(latentEffect);
         default:
             break;
@@ -687,6 +691,7 @@ void CLatentEffectContainer::ProcessLatentEffects(std::function <bool(CLatentEff
 // activation/deactivation and attempts to apply
 bool CLatentEffectContainer::ProcessLatentEffect(CLatentEffect& latentEffect)
 {
+    TracyZoneScoped;
     // Our default case un-finds our latent prevent us from toggling a latent we don't have programmed
     auto expression = false;
     auto latentFound = true;
@@ -808,6 +813,14 @@ bool CLatentEffectContainer::ProcessLatentEffect(CLatentEffect& latentEffect)
                 if (member->id != m_POwner->id)
                 {
                     if (member->GetMJob() == latentEffect.GetConditionsValue())
+                    {
+                        expression = true;
+                        break;
+                    }
+                }
+                for (auto trust : static_cast<CCharEntity*>(member)->PTrusts)
+                {
+                    if (trust->GetMJob() == latentEffect.GetConditionsValue())
                     {
                         expression = true;
                         break;
@@ -1111,6 +1124,16 @@ bool CLatentEffectContainer::ProcessLatentEffect(CLatentEffect& latentEffect)
         if (CBattleEntity* PTarget = m_POwner->GetBattleTarget())
         {
             expression = PTarget->m_EcoSystem == latentEffect.GetConditionsValue();
+        }
+        break;
+    case LATENT_VS_FAMILY:
+        if (CBattleEntity* PTarget = m_POwner->GetBattleTarget())
+        {
+            CMobEntity* PMob = dynamic_cast<CMobEntity*>(PTarget);
+            if (PMob)
+            {
+                expression = PMob->m_Family == latentEffect.GetConditionsValue();
+            }
         }
         break;
     default:

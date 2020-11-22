@@ -24,6 +24,8 @@
 #include "../../common/utils.h"
 
 #include <unordered_map>
+#include <string>
+#include <array>
 
 #include "luautils.h"
 #include "lua_action.h"
@@ -62,6 +64,7 @@
 #include "../entities/automatonentity.h"
 #include "../utils/itemutils.h"
 #include "../utils/charutils.h"
+#include "../utils/battleutils.h"
 #include "../conquest_system.h"
 #include "../weapon_skill.h"
 #include "../status_effect_container.h"
@@ -80,6 +83,8 @@
 #include "../ai/states/magic_state.h"
 #include <optional>
 #include "../battlefield.h"
+#include "../daily_system.h"
+#include "../packets/char_emotion.h"
 
 namespace luautils
 {
@@ -98,6 +103,7 @@ namespace luautils
 
     int32 init()
     {
+        TracyZoneScoped;
         ShowStatus("luautils::init:lua initializing...");
         LuaHandle = luaL_newstate();
         luaL_openlibs(LuaHandle);
@@ -117,10 +123,14 @@ namespace luautils
         lua_register(LuaHandle, "GetPlayerByName", luautils::GetPlayerByName);
         lua_register(LuaHandle, "GetPlayerByID", luautils::GetPlayerByID);
         lua_register(LuaHandle, "GetMobAction", luautils::GetMobAction);
+        lua_register(LuaHandle, "GetMagianTrial", luautils::GetMagianTrial);
+        lua_register(LuaHandle, "GetMagianTrialsWithParent", luautils::GetMagianTrialsWithParent);
+        lua_register(LuaHandle, "JstMidnight", luautils::JstMidnight);
         lua_register(LuaHandle, "VanadielTime", luautils::VanadielTime);
         lua_register(LuaHandle, "VanadielTOTD", luautils::VanadielTOTD);
         lua_register(LuaHandle, "VanadielHour", luautils::VanadielHour);
         lua_register(LuaHandle, "VanadielMinute", luautils::VanadielMinute);
+        lua_register(LuaHandle, "VanadielDayOfTheWeek", luautils::VanadielDayOfTheWeek);
         lua_register(LuaHandle, "VanadielDayOfTheMonth", luautils::VanadielDayOfTheMonth);
         lua_register(LuaHandle, "VanadielDayOfTheYear", luautils::VanadielDayOfTheYear);
         lua_register(LuaHandle, "VanadielYear", luautils::VanadielYear);
@@ -147,9 +157,10 @@ namespace luautils
         lua_register(LuaHandle, "terminate", luautils::terminate);
 
         lua_register(LuaHandle, "GetHealingTickDelay", luautils::GetHealingTickDelay);
-
+        lua_register(LuaHandle, "GetItem", luautils::GetItem);
         lua_register(LuaHandle, "getAbility", luautils::getAbility);
         lua_register(LuaHandle, "getSpell", luautils::getSpell);
+        lua_register(LuaHandle, "SelectDailyItem", luautils::SelectDailyItem);
 
         Lunar<CLuaAbility>::Register(LuaHandle);
         Lunar<CLuaAction>::Register(LuaHandle);
@@ -174,6 +185,8 @@ namespace luautils
 
         contentRestrictionEnabled = (GetSettingsVariable("RESTRICT_CONTENT") != 0);
 
+        TracyReportLuaMemory(LuaHandle);
+
         ShowMessage("\t\t - " CL_GREEN"[OK]" CL_RESET"\n");
         return 0;
     }
@@ -186,19 +199,27 @@ namespace luautils
 
     int32 free()
     {
-        ShowStatus(CL_WHITE"luautils::free" CL_RESET":lua free...");
-        lua_close(LuaHandle);
-        ShowMessage("\t - " CL_GREEN"[OK]" CL_RESET"\n");
+        if(LuaHandle)
+        {
+            ShowStatus(CL_WHITE"luautils::free" CL_RESET":lua free...");
+            lua_close(LuaHandle);
+            LuaHandle = nullptr;
+            ShowMessage("\t - " CL_GREEN"[OK]" CL_RESET"\n");
+        }
         return 0;
     }
 
     int32 garbageCollect()
     {
+        TracyZoneScoped;
+        TracyReportLuaMemory(LuaHandle);
 
         int32 top = lua_gettop(LuaHandle);
         ShowDebug(CL_CYAN"[Lua] Garbage Collected. Current State Top: %d\n" CL_RESET, top);
 
         lua_gc(LuaHandle, LUA_GCSTEP, 10);
+
+        TracyReportLuaMemory(LuaHandle);
 
         return 0;
     }
@@ -239,6 +260,11 @@ namespace luautils
 
     int32 prepFile(int8* File, const char* function)
     {
+        TracyZoneScoped;
+        TracyZoneCString(function);
+        TracyZoneIString(File);
+        TracyReportLuaMemory(LuaHandle);
+
         lua_pushnil(LuaHandle);
         lua_setglobal(LuaHandle, function);
 
@@ -330,6 +356,7 @@ namespace luautils
 
     int32 GetNPCByID(lua_State* L)
     {
+        TracyZoneScoped;
         if (!lua_isnil(L, 1) && lua_isnumber(L, 1))
         {
             uint32 npcid = (uint32)lua_tointeger(L, 1);
@@ -338,8 +365,8 @@ namespace luautils
 
             if (!lua_isnil(L, 2) && lua_isuserdata(L, 2))
             {
-                CLuaBaseEntity* PLuaBaseEntity = Lunar<CLuaBaseEntity>::check(L, 2);
-                PInstance = PLuaBaseEntity->GetBaseEntity()->PInstance;
+                CLuaInstance* PLuaInstance = Lunar<CLuaInstance>::check(L, 2);
+                PInstance = PLuaInstance->GetInstance();
             }
 
             CBaseEntity* PNpc = nullptr;
@@ -381,6 +408,7 @@ namespace luautils
 
     int32 GetMobByID(lua_State* L)
     {
+        TracyZoneScoped;
         if (!lua_isnil(L, 1) && lua_isnumber(L, 1))
         {
             uint32 mobid = (uint32)lua_tointeger(L, 1);
@@ -440,6 +468,7 @@ namespace luautils
 
         return 0;
     }
+
 
     /************************************************************************
     *                                                                       *
@@ -651,6 +680,21 @@ namespace luautils
 
     /************************************************************************
     *                                                                       *
+    *   Return Vanadiel day of the week                                     *
+    *   Note: THIS IS NOT THE SAME AS THAT DAY'S ELEMENT                    *
+    *   Days of week: Fire Earth Water Wind Ice Lightning Light Dark        *
+    *   Elements: Fire Ice Wind Earth Thunder Water Light Dark              *
+    *                                                                       *
+    ************************************************************************/
+
+    int32 VanadielDayOfTheWeek(lua_State* L)
+    {
+        lua_pushinteger(L, CVanaTime::getInstance()->getWeekday());
+        return 1;
+    }
+
+    /************************************************************************
+    *                                                                       *
     *   Return Vanadiel Hour                                                *
     *                                                                       *
     ************************************************************************/
@@ -675,13 +719,29 @@ namespace luautils
 
     /************************************************************************
     *                                                                       *
-    *   Return Vanadiel Day element                                         *
+    *   Return Vanadiel Day's element                                       *
+    *   Note: THIS IS NOT THE SAME AS THE DAY OF THE WEEK                   *
+    *   Days of week: Fire Earth Water Wind Ice Lightning Light Dark        *
+    *   Elements: Fire Ice Wind Earth Thunder Water Light Dark              *
     *                                                                       *
     ************************************************************************/
 
     int32 VanadielDayElement(lua_State* L)
     {
-        lua_pushinteger(L, CVanaTime::getInstance()->getWeekday());
+        lua_pushinteger(L, battleutils::GetDayElement());
+        return 1;
+    }
+
+
+    /************************************************************************
+    *                                                                       *
+    * JstMidnight - Returns UTC timestamp of upcoming JST midnight
+    *                                                                       *
+    ************************************************************************/
+
+    int32 JstMidnight(lua_State* L)
+    {
+        lua_pushinteger(L, CVanaTime::getInstance()->getJstMidnight());
         return 1;
     }
 
@@ -702,8 +762,8 @@ namespace luautils
         if (!lua_isnil(L, 1) && lua_isnumber(L, 1))
         {
             int32 offset = (int32)lua_tointeger(L, 1);
-
-            CVanaTime::getInstance()->setCustomOffset(offset);
+            int32 custom = CVanaTime::getInstance()->getCustomEpoch();
+            CVanaTime::getInstance()->setCustomEpoch((custom ? custom : VTIME_BASEDATE) - offset);
 
             lua_pushboolean(L, true);
             return 1;
@@ -837,6 +897,7 @@ namespace luautils
     ************************************************************************/
     int32 SpawnMob(lua_State* L)
     {
+        TracyZoneScoped;
         if (!lua_isnil(L, 1) && lua_isnumber(L, 1))
         {
             uint32 mobid = (uint32)lua_tointeger(L, 1);
@@ -902,6 +963,7 @@ namespace luautils
 
     int32 DespawnMob(lua_State* L)
     {
+        TracyZoneScoped;
         if (!lua_isnil(L, 1) && lua_isnumber(L, 1))
         {
             uint32 mobid = (uint32)lua_tointeger(L, 1);
@@ -1034,6 +1096,140 @@ namespace luautils
             }
         }
         lua_pushnil(L);
+        return 1;
+    }
+
+    /*******************************************************************************
+    *                                                                              *
+    *  Returns data of Magian trials                                               *
+    *  Will return a single table with keys matching the SQL table column          *
+    *  names if given one trial #, or will return a table of likewise trial        *
+    *  columns if given a table of trial #s.                                       *
+    *  examples: GetMagianTrial(2)          returns {column = value, ...}          *
+    *            GetMagianTrial({2, 16})    returns { 2 = { column = value, ...},  *
+    *                                                16 = { column = value, ...}}  *
+    *******************************************************************************/
+
+    int32 GetMagianTrial(lua_State* L)
+    {
+        if (!lua_isnil(L, 1))
+        {
+            // Get all magian table columns to build lua keys
+            const char* ColumnQuery = "SHOW COLUMNS FROM `magian`;";
+            std::vector<std::string> magianColumns;
+            if (Sql_Query(SqlHandle, ColumnQuery) == SQL_SUCCESS && Sql_NumRows(SqlHandle) != 0)
+            {
+                while(Sql_NextRow(SqlHandle) == SQL_SUCCESS)
+                {
+                    magianColumns.push_back((const char*)Sql_GetData(SqlHandle, 0));
+                }
+            } else {
+                ShowError("Error: No columns in `magian` table?");
+                lua_pushnil(L);
+                return 1;
+            }
+
+            const char* Query = "SELECT * FROM `magian` WHERE trialId = %u;";
+
+            if (lua_isnumber(L, 1))
+            {
+                int32 trial = static_cast<int32>(lua_tointeger(L, 1));
+                int32 field {0};
+                lua_newtable(L);
+                if (Sql_Query(SqlHandle, Query, trial) != SQL_ERROR && Sql_NumRows(SqlHandle) != 0 && Sql_NextRow(SqlHandle) == SQL_SUCCESS)
+                {
+                    for(auto column: magianColumns)
+                    {
+                        lua_pushstring(L, column.c_str());
+                        lua_pushinteger(L, (int32)Sql_GetIntData(SqlHandle, field++));
+                        lua_settable(L,-3);
+                    }
+                }
+            }
+            else if (lua_istable(L, 1))
+            {
+                // parse provided trial's from table
+                std::vector<int32> trials;
+                for(size_t i = 1, j = lua_objlen(L, 1); i <= j; i++)
+                {
+                    lua_pushinteger(L, i);
+                    lua_gettable(L, 1);
+                    if(!lua_tointeger(L, -1))
+                    {
+                        lua_pop(L, 1);
+                        continue;
+                    }
+                    trials.push_back(static_cast<int32>(lua_tointeger(L, -1)));
+                    lua_pop(L, 1);
+                }
+
+                // Build outer table
+                lua_newtable(L);
+                // one inner table each trial { trial# = { column = value, ... } }
+                for(auto trial: trials)
+                {
+                    int32 ret = Sql_Query(SqlHandle, Query, trial);
+                    if (ret != SQL_ERROR && Sql_NumRows(SqlHandle) != 0 && Sql_NextRow(SqlHandle) == SQL_SUCCESS)
+                    {
+                        lua_pushinteger(L, trial);
+                        lua_newtable(L);
+                        int32 field {0};
+                        for(auto column: magianColumns)
+                        {
+                            lua_pushstring(L, column.c_str());
+                            int t = (int32)Sql_GetIntData(SqlHandle, field++);
+                            lua_pushinteger(L, t);
+                            lua_settable(L,-3);
+                        }
+                        lua_settable(L,-3);
+                    }
+                }
+            } else {
+                return 0;
+            }
+            return 1;
+        }
+        lua_pushnil(L);
+        return 1;
+    }
+
+    /*******************************************************************************
+    *                                                                              *
+    *  Returns a list of trial numbers who have the given parent trial             *
+    *                                                                              *
+    *******************************************************************************/
+
+    int32 GetMagianTrialsWithParent(lua_State* L)
+    {
+        TPZ_DEBUG_BREAK_IF(lua_isnil(L, 1) || !lua_isnumber(L, 1));
+
+        if (lua_isnumber(L, 1))
+        {
+            int32 parentTrial = static_cast<int32>(lua_tointeger(L, 1));
+            const char* Query = "SELECT `trialId` from `magian` WHERE `previousTrial` = %u;";
+
+            int32 ret = Sql_Query(SqlHandle, Query, parentTrial);
+            if(ret != SQL_ERROR && Sql_NumRows(SqlHandle) > 0)
+            {
+                lua_newtable(L);
+                int32 field {0};
+                while(Sql_NextRow(SqlHandle) == 0)
+                {
+                    int32 childTrial = Sql_GetIntData(SqlHandle, 0);
+                    lua_pushinteger(L, ++field);
+                    lua_pushinteger(L, childTrial);
+                    lua_settable(L, -3);
+                }
+            }
+            else
+            {
+                lua_pushnil(L);
+            }
+        }
+        else
+        {
+            lua_pushnil(L);
+        }
         return 1;
     }
 
@@ -1439,6 +1635,7 @@ namespace luautils
 
     int32 OnTrigger(CCharEntity* PChar, CBaseEntity* PNpc)
     {
+        TracyZoneScoped;
         lua_prepscript("scripts/zones/%s/npcs/%s.lua", PChar->loc.zone->GetName(), PNpc->GetName());
 
         PChar->m_event.reset();
@@ -1497,8 +1694,8 @@ namespace luautils
 
     int32 OnEventUpdate(CCharEntity* PChar, uint16 eventID, uint32 result, uint16 extras)
     {
-        int32 oldtop = lua_gettop(LuaHandle);
-
+        TracyZoneScoped;
+        lua_gettop(LuaHandle);
         lua_pushnil(LuaHandle);
         lua_setglobal(LuaHandle, "onEventUpdate");
 
@@ -1539,6 +1736,7 @@ namespace luautils
 
     int32 OnEventUpdate(CCharEntity* PChar, uint16 eventID, uint32 result)
     {
+        TracyZoneScoped;
         lua_pushnil(LuaHandle);
         lua_setglobal(LuaHandle, "onEventUpdate");
 
@@ -1574,6 +1772,7 @@ namespace luautils
 
     int32 OnEventUpdate(CCharEntity* PChar, int8* string)
     {
+        TracyZoneScoped;
         lua_pushnil(LuaHandle);
         lua_setglobal(LuaHandle, "onEventUpdate");
 
@@ -1611,6 +1810,7 @@ namespace luautils
 
     int32 OnEventFinish(CCharEntity* PChar, uint16 eventID, uint32 result)
     {
+        TracyZoneScoped;
         lua_pushnil(LuaHandle);
         lua_setglobal(LuaHandle, "onEventFinish");
 
@@ -1653,6 +1853,7 @@ namespace luautils
 
     int32 OnTrade(CCharEntity* PChar, CBaseEntity* PNpc)
     {
+        TracyZoneScoped;
         lua_prepscript("scripts/zones/%s/npcs/%s.lua", PChar->loc.zone->GetName(), PNpc->GetName());
 
         PChar->m_event.reset();
@@ -2484,6 +2685,7 @@ namespace luautils
 
     int32 OnPath(CBaseEntity* PEntity)
     {
+        TracyZoneScoped;
         TPZ_DEBUG_BREAK_IF(PEntity == nullptr);
 
         if (PEntity->objtype != TYPE_PC)
@@ -2690,7 +2892,7 @@ namespace luautils
 
         lua_prepscript("scripts/zones/%s/mobs/%s.lua", PMob->loc.zone->GetName(), PMob->GetName());
 
-        if (PTarget->objtype != TYPE_PET && PTarget->objtype != TYPE_MOB)
+        if (PTarget->objtype == TYPE_PC)
         {
             ((CCharEntity*)PTarget)->m_event.reset();
             ((CCharEntity*)PTarget)->m_event.Target = PMob;
@@ -2723,6 +2925,7 @@ namespace luautils
 
     int32 OnMobFight(CBaseEntity* PMob, CBaseEntity* PTarget)
     {
+        TracyZoneScoped;
         TPZ_DEBUG_BREAK_IF(PMob == nullptr);
         TPZ_DEBUG_BREAK_IF(PTarget == nullptr || PTarget->objtype == TYPE_NPC);
 
@@ -2788,6 +2991,7 @@ namespace luautils
 
     int32 OnMobDeath(CBaseEntity* PMob, CBaseEntity* PKiller)
     {
+        TracyZoneScoped;
         TPZ_DEBUG_BREAK_IF(PMob == nullptr);
 
         CCharEntity* PChar = dynamic_cast<CCharEntity*>(PKiller);
@@ -2887,9 +3091,21 @@ namespace luautils
         else
         {
             int8 File[255];
-            memset(File, 0, sizeof(File));
-            PMob->objtype == TYPE_PET ? snprintf((char*)File, sizeof(File), "scripts/globals/pets/%s.lua", static_cast<CPetEntity*>(PMob)->GetScriptName().c_str()) :
-                snprintf((char*)File, sizeof(File), "scripts/zones/%s/mobs/%s.lua", PMob->loc.zone->GetName(), PMob->GetName());;
+            switch (PMob->objtype)
+            {
+            case TYPE_MOB:
+                snprintf((char*)File, sizeof(File), "scripts/zones/%s/mobs/%s.lua", PMob->loc.zone->GetName(), PMob->GetName());
+                break;
+            case TYPE_PET:
+                snprintf((char*)File, sizeof(File), "scripts/globals/pets/%s.lua", static_cast<CPetEntity*>(PMob)->GetScriptName().c_str());
+                break;
+            case TYPE_TRUST:
+                snprintf((char*)File, sizeof(File), "scripts/globals/spells/trust/%s.lua", PMob->GetName());
+                break;
+            default:
+                ShowWarning("luautils::onMobDeath (%d): unknown objtype\n", PMob->objtype);
+                break;
+            }
 
             lua_pushnil(LuaHandle);
             lua_setglobal(LuaHandle, "onMobDeath");
@@ -2937,8 +3153,22 @@ namespace luautils
         TPZ_DEBUG_BREAK_IF(PMob == nullptr);
 
         int8 File[255];
-        PMob->objtype == TYPE_PET ? snprintf((char*)File, sizeof(File), "scripts/globals/pets/%s.lua", static_cast<CPetEntity*>(PMob)->GetScriptName().c_str()) :
+        switch (PMob->objtype)
+        {
+        case TYPE_MOB:
             snprintf((char*)File, sizeof(File), "scripts/zones/%s/mobs/%s.lua", PMob->loc.zone->GetName(), PMob->GetName());
+            break;
+        case TYPE_PET:
+            snprintf((char*)File, sizeof(File), "scripts/globals/pets/%s.lua", static_cast<CPetEntity*>(PMob)->GetScriptName().c_str());
+            break;
+        case TYPE_TRUST:
+            snprintf((char*)File, sizeof(File), "scripts/globals/spells/trust/%s.lua", PMob->GetName());
+            break;
+        default:
+            ShowWarning("luautils::onMobSpawn (%d): unknown objtype\n", PMob->objtype);
+            break;
+        }
+
         if (prepFile(File, "onMobSpawn"))
         {
             return -1;
@@ -2946,7 +3176,6 @@ namespace luautils
 
         CLuaBaseEntity LuaMobEntity(PMob);
         Lunar<CLuaBaseEntity>::push(LuaHandle, &LuaMobEntity);
-
 
         if (lua_pcall(LuaHandle, 1, 0, 0))
         {
@@ -3024,8 +3253,21 @@ namespace luautils
         TPZ_DEBUG_BREAK_IF(PMob == nullptr);
 
         int8 File[255];
-        PMob->objtype == TYPE_PET ? snprintf((char*)File, sizeof(File), "scripts/globals/pets/%s.lua", static_cast<CPetEntity*>(PMob)->GetScriptName().c_str()) :
+        switch (PMob->objtype)
+        {
+        case TYPE_MOB:
             snprintf((char*)File, sizeof(File), "scripts/zones/%s/mobs/%s.lua", PMob->loc.zone->GetName(), PMob->GetName());
+            break;
+        case TYPE_PET:
+            snprintf((char*)File, sizeof(File), "scripts/globals/pets/%s.lua", static_cast<CPetEntity*>(PMob)->GetScriptName().c_str());
+            break;
+        case TYPE_TRUST:
+            snprintf((char*)File, sizeof(File), "scripts/globals/spells/trust/%s.lua", PMob->GetName());
+            break;
+        default:
+            ShowWarning("luautils::onMobDespawn (%d): unknown objtype\n", PMob->objtype);
+            break;
+        }
 
         if (prepFile(File, "onMobDespawn"))
         {
@@ -3077,6 +3319,7 @@ namespace luautils
 
     int32 OnGameHour(CZone* PZone)
     {
+        TracyZoneScoped;
         lua_prepscript("scripts/zones/%s/Zone.lua", PZone->GetName());
 
         if (prepFile(File, "onGameHour"))
@@ -3144,7 +3387,7 @@ namespace luautils
     *                                                                       *
     ************************************************************************/
 
-    std::tuple<int32, uint8, uint8> OnUseWeaponSkill(CCharEntity* PChar, CBaseEntity* PMob, CWeaponSkill* wskill, uint16 tp, bool primary, action_t& action, CBattleEntity* taChar)
+    std::tuple<int32, uint8, uint8> OnUseWeaponSkill(CBattleEntity* PChar, CBaseEntity* PMob, CWeaponSkill* wskill, uint16 tp, bool primary, action_t& action, CBattleEntity* taChar)
     {
         lua_prepscript("scripts/globals/weaponskills/%s.lua", wskill->getName());
 
@@ -3958,6 +4201,7 @@ namespace luautils
 
     int32 OnConquestUpdate(CZone* PZone, ConquestUpdate type)
     {
+        TracyZoneScoped;
         lua_prepscript("scripts/zones/%s/Zone.lua", PZone->GetName());
 
         if (prepFile(File, "onConquestUpdate"))
@@ -4252,6 +4496,47 @@ namespace luautils
         return 1;
     }
 
+    /***************************************************************************
+    *                                                                          *
+    *  Creates an item object of the type specified by the itemID.             *
+    *  This item is ephemeral, and doesn't exist in-game but can and should    *
+    *  be used to lookup item information or access item functions when only   *
+    *  the ItemID is known.                                                    *
+    *                                                                          *
+    *  ## These items should be used to READ ONLY!                             *
+    *  ## Should lua functions be written which modify items, care must be     *
+    *     taken to ensure these are NEVER modified.                            *
+    *                                                                          *
+    *  example: local item = GetItem(16448)                                    *
+    *           item:GetName()                 --Bronze Dagger                 *
+    *           item:isTwoHanded()             --False                         *
+    *                                                                          *
+    ***************************************************************************/
+
+    int32 GetItem(lua_State* L)
+    {
+        TPZ_DEBUG_BREAK_IF(lua_isnil(L, -1) || !lua_isnumber(L, -1));
+
+        uint32 id = static_cast<uint32>(lua_tointeger(L, 1));
+        CItem* PItem = itemutils::GetItemPointer(id);
+        if (PItem)
+        {
+            lua_getglobal(L, CLuaItem::className);
+            lua_pushstring(L, "new");
+            lua_gettable(L, -2);
+            lua_insert(L, -2);
+            lua_pushlightuserdata(L, (void*)PItem);
+
+            if (lua_pcall(L, 2, 1, 0))
+            {
+                return 0;
+            }
+            return 1;
+        }
+        lua_pushnil(L);
+        return 1;
+    }
+
     int32 getAbility(lua_State* L)
     {
         if (!lua_isnil(L, 1) && lua_isnumber(L, 1))
@@ -4497,6 +4782,36 @@ namespace luautils
         {
             ShowError("luautils::onFurnitureRemoved: %s\n", lua_tostring(LuaHandle, -1));
             lua_pop(LuaHandle, 1);
+        }
+    }
+
+    int32 SelectDailyItem(lua_State* L)
+    {
+        TPZ_DEBUG_BREAK_IF(lua_isnil(L, 1) || !lua_isuserdata(L, 1));
+        TPZ_DEBUG_BREAK_IF(lua_isnil(L, 2) || !lua_isnumber(L, 2));
+        CLuaBaseEntity* PLuaBaseEntity = Lunar<CLuaBaseEntity>::check(L, 1);
+        CCharEntity* player = (CCharEntity*)PLuaBaseEntity->GetBaseEntity();
+        lua_pushinteger(L, daily::SelectItem(player, (uint8)lua_tointeger(L, 2)));
+        return 1;
+    }
+
+    void OnPlayerEmote(CCharEntity* PChar, Emote EmoteID)
+    {
+        lua_prepscript("scripts/globals/player.lua");
+
+        if (prepFile(File, "onPlayerEmote"))
+            return;
+
+        CLuaBaseEntity LuaBaseEntity(PChar);
+        Lunar<CLuaBaseEntity>::push(LuaHandle, &LuaBaseEntity);
+
+        lua_pushinteger(LuaHandle, (uint8)EmoteID);
+
+        if (lua_pcall(LuaHandle, 2, 0, 0))
+        {
+            ShowError("luautils::onEmote: %s\n", lua_tostring(LuaHandle, -1));
+            lua_pop(LuaHandle, 1);
+            return;
         }
     }
 

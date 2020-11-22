@@ -1,4 +1,4 @@
-/*
+﻿/*
 ===========================================================================
 
   Copyright (c) 2010-2015 Darkstar Dev Teams
@@ -68,18 +68,6 @@ enum NFLAGTYPE : uint32
     NFLAG_NEWPLAYER     = 0x04000000,
     NFLAG_DISPLAY_HEAD  = 0x08000000,
     NFLAG_RECRUIT       = 0x20000000,
-};
-
-enum ELEMENTS
-{
-    FIRE		= 0x01,
-    ICE			= 0x02,
-    WIND		= 0x04,
-    EARTH		= 0x08,
-    THUNDER		= 0x10,
-    WATER		= 0x20,
-	LIGHT		= 0x40,
-	DARK		= 0x80,
 };
 
 enum MSGSERVTYPE : uint8
@@ -208,6 +196,20 @@ struct campaignlog_t
 {
 	uint16 current;
 	bool   complete[512];
+};
+
+struct eminencelog_t
+{
+    uint16 active[31];   //slot 31 is for time-limited records
+    uint32 progress[31];
+    uint8 complete[512]; //bitmap of all 4096 possible records.
+};
+
+struct eminencecache_t
+{
+    std::bitset<4096> activemap;
+    uint32 lastWriteout {0};
+    bool notifyTimedRecord {false};
 };
 
 struct nameflags_t

@@ -71,6 +71,7 @@ struct actionList_t;
 struct actionTarget_t;
 
 enum ConquestUpdate : uint8;
+enum class Emote : uint8;
 
 namespace luautils
 {
@@ -139,7 +140,7 @@ namespace luautils
     int32 setMobPos(lua_State*);                                                // set a mobs position (only if mob is not in combat)
 
     int32 GetHealingTickDelay(lua_State* L);                                    // Returns the configured healing tick delay
-
+    int32 GetItem(lua_State* L);                                                // Returns a newly minted item object of the specified ID
     int32 getAbility(lua_State*);
     int32 getSpell(lua_State*);
 
@@ -147,16 +148,20 @@ namespace luautils
     int32 DespawnMob(lua_State*);                                               // Despawn (Fade Out) Mob By Id
     int32 GetPlayerByName(lua_State*);                                          // Gets Player ref from a name supplied
     int32 GetPlayerByID(lua_State*);                                            // Gets Player ref from an Id supplied
+    int32 GetMagianTrial(lua_State*);
+    int32 GetMagianTrialsWithParent(lua_State* L);
     int32 GetMobAction(lua_State*);                                             // Get Mobs current action
+    int32 JstMidnight(lua_State* L);
     int32 VanadielTime(lua_State*);                                             // Gets the current Vanadiel Time in timestamp format (SE epoch in earth seconds)
     int32 VanadielTOTD(lua_State*);                                             // текущее игровое время суток
     int32 VanadielHour(lua_State*);                                             // текущие Vanadiel часы
     int32 VanadielMinute(lua_State*);                                           // текущие Vanadiel минуты
     int32 VanadielDayOfTheYear(lua_State*);                                     // Gets Integer Value for Day of the Year (Jan 01 = Day 1)
     int32 VanadielDayOfTheMonth(lua_State*);                                    // Gets day of the month (Feb 6 = Day 6)
+    int32 VanadielDayOfTheWeek(lua_State*);                                     // Gets day of the week (Fire Earth Water Wind Ice Lightning Light Dark)
     int32 VanadielYear(lua_State*);                                             // Gets the current Vanadiel Year
     int32 VanadielMonth(lua_State*);                                            // Gets the current Vanadiel Month
-    int32 VanadielDayElement(lua_State*);                                       // Gets element of the day (0: fire, ...)
+    int32 VanadielDayElement(lua_State*);                                       // Gets element of the day (1: fire, 2: ice, 3: wind, 4: earth, 5: thunder, 6: water, 7: light, 8: dark)
     int32 VanadielMoonPhase(lua_State*);                                        // Gets the current Vanadiel Moon Phase
     int32 VanadielMoonDirection(lua_State* L);                                  // Gets the current Vanadiel Moon Phasing direction (waxing, waning, neither)
     int32 VanadielRSERace(lua_State* L);                                        // Gets the current Race for RSE gear quest
@@ -252,7 +257,7 @@ namespace luautils
 
     int32 OnAbilityCheck(CBaseEntity* PChar, CBaseEntity* PTarget, CAbility* PAbility, CBaseEntity** PMsgTarget);   // triggers when a player attempts to use a job ability or roll
     int32 OnPetAbility(CBaseEntity* PPet, CBaseEntity* PMob, CMobSkill* PMobSkill, CBaseEntity* PPetMaster, action_t* action);      // triggers when pet uses an ability
-    std::tuple<int32, uint8, uint8> OnUseWeaponSkill(CCharEntity* PChar, CBaseEntity* PMob, CWeaponSkill* wskill, uint16 tp, bool primary, action_t& action, CBattleEntity* taChar);// returns: damage, tphits landed, extra hits landed
+    std::tuple<int32, uint8, uint8> OnUseWeaponSkill(CBattleEntity* PUser, CBaseEntity* PMob, CWeaponSkill* wskill, uint16 tp, bool primary, action_t& action, CBattleEntity* taChar);// returns: damage, tphits landed, extra hits landed
     int32 OnUseAbility(CBattleEntity* PUser, CBattleEntity* PTarget, CAbility* PAbility, action_t* action);         // triggers when job ability is used
 
     int32 OnInstanceZoneIn(CCharEntity* PChar, CInstance* PInstance);           // triggered on zone in to instance
@@ -287,6 +292,10 @@ namespace luautils
 
     void OnFurniturePlaced(CCharEntity* PChar, CItemFurnishing* itemId);
     void OnFurnitureRemoved(CCharEntity* PChar, CItemFurnishing* itemId);
+
+    int32 SelectDailyItem(lua_State* L);
+
+    void OnPlayerEmote(CCharEntity* PChar, Emote EmoteID);
 };
 
 #endif //- _LUAUTILS_H -
