@@ -17,6 +17,31 @@ require("scripts/globals/utils")
 local wsQuest = tpz.wsquest.savage_blade
 local sandyQuests = tpz.quest.id.sandoria
 
+local TrustMemory = function(player)
+    local memories = 0
+    -- 2 - PEACE_FOR_THE_SPIRIT
+    if player:hasCompletedQuest(SANDORIA, tpz.quest.id.sandoria.PEACE_FOR_THE_SPIRIT) then
+        memories = memories + 2
+    end
+    -- 4 - OLD_WOUNDS
+    if player:hasCompletedQuest(SANDORIA, tpz.quest.id.sandoria.OLD_WOUNDS) then
+        memories = memories + 4
+    end
+    -- 8 - THE_HEIR_TO_THE_LIGHT
+    if player:hasCompletedMission(SANDORIA, tpz.mission.id.sandoria.THE_HEIR_TO_THE_LIGHT) then
+        memories = memories + 8
+    end
+    -- 16 - Heroine's Combat BCNM
+    -- if (playervar for Heroine's Combat) then
+    --  memories = memories + 16
+    -- end
+    -- 32 - FIT_FOR_A_PRINCE
+    if player:hasCompletedQuest(SANDORIA, tpz.quest.id.sandoria.FIT_FOR_A_PRINCE) then
+        memories = memories + 32
+    end
+    return memories
+end
+
 function onTrade(player, npc, trade)
     local wsQuestEvent = tpz.wsquest.getTradeEvent(wsQuest, player, trade)
 
@@ -33,9 +58,14 @@ function onTrigger(player, npc)
     local theGeneralSecret = player:getQuestStatus(SANDORIA, sandyQuests.THE_GENERAL_S_SECRET)
     local envelopedInDarkness = player:getQuestStatus(SANDORIA, sandyQuests.ENVELOPED_IN_DARKNESS)
     local peaceForTheSpirit = player:getQuestStatus(SANDORIA, sandyQuests.PEACE_FOR_THE_SPIRIT)
+    local Rank3 = player:getRank() >= 3 and 1 or 0
+
+    -- Trust: San d'Oria (Curilla)
+    if player:hasKeyItem(tpz.ki.SAN_DORIA_TRUST_PERMIT) and not player:hasSpell(902) then
+        player:startEvent(573, 0, 0, 0, TrustMemory(player), 0, 0, 0, Rank3)
 
     -- "Lure of the Wildcat"
-    if
+    elseif
         player:getQuestStatus(SANDORIA, sandyQuests.LURE_OF_THE_WILDCAT) == QUEST_ACCEPTED and
         not utils.mask.getBit(player:getCharVar("WildcatSandy"), 15)
     then
@@ -98,7 +128,7 @@ function onTrigger(player, npc)
         local currentMission = player:getCurrentMission(SANDORIA)
         local missionStatus = player:getCharVar("MissionStatus")
 
-        -- San d'Oria Epilogue 
+        -- San d'Oria Epilogue
         if player:getRank() == 10 then
             player:startEvent(20)
 
@@ -187,6 +217,9 @@ function onEventFinish(player, csid, option)
         player:setCharVar("needs_crawler_blood", 1)
     elseif (csid == 562) then
         player:setCharVar("WildcatSandy", utils.mask.setBit(player:getCharVar("WildcatSandy"), 15, true))
+    elseif csid == 573 and option == 2 then
+        player:addSpell(902, true, true)
+        player:messageSpecial(ID.text.YOU_LEARNED_TRUST, 0, 902)
     else
         tpz.wsquest.handleEventFinish(wsQuest, player, csid, option, ID.text.SAVAGE_BLADE_LEARNED)
     end

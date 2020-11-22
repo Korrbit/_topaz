@@ -488,7 +488,11 @@ void CMobController::CastSpell(SpellID spellid)
         {
             PCastTarget = PTarget;
         }
-        Cast(PCastTarget->targid, spellid);
+
+        if (PCastTarget)
+        {
+            Cast(PCastTarget->targid, spellid);
+        }
     }
 }
 
@@ -700,7 +704,7 @@ void CMobController::DoRoamTick(time_point tick)
     else if (PMob->m_OwnerID.id != 0 && !(PMob->m_roamFlags & ROAMFLAG_IGNORE))
     {
         // i'm claimed by someone and need hate towards this person
-        PTarget = (CBattleEntity*)PMob->GetEntity(PMob->m_OwnerID.targid, TYPE_PC | TYPE_MOB | TYPE_PET);
+        PTarget = (CBattleEntity*)PMob->GetEntity(PMob->m_OwnerID.targid, TYPE_PC | TYPE_MOB | TYPE_PET | TYPE_TRUST);
 
         PMob->PEnmityContainer->AddBaseEnmity(PTarget);
 
@@ -740,7 +744,7 @@ void CMobController::DoRoamTick(time_point tick)
             }
 
             // can't rest with poison or disease
-            if (PMob->CanRest())
+            if (PMob->CanRest() && PMob->getMobMod(MOBMOD_NO_REST) == 0)
             {
                 // recover 10% health
                 if (PMob->Rest(0.1f))

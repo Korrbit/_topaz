@@ -19,6 +19,7 @@ zones[tpz.zone.LOWER_JEUNO] =
         CARRIED_OVER_POINTS     = 6427, -- You have carried over <number> login point[/s].
         LOGIN_CAMPAIGN_UNDERWAY = 6428, -- The [/January/February/March/April/May/June/July/August/September/October/November/December] <number> Login Campaign is currently underway!<space>
         LOGIN_NUMBER            = 6429, -- In celebration of your most recent login (login no. <number>), we have provided you with <number> points! You currently have a total of <number> points.
+        YOU_MUST_WAIT_ANOTHER_N_DAYS = 6424, -- You must wait another ≺number≻ [day/days] to perform that action.
         HOMEPOINT_SET           = 6517, -- Home point set!
         CONQUEST_BASE           = 6542, -- Tallying conquest results...
         MOG_LOCKER_OFFSET       = 6811, -- Your Mog Locker lease is valid until <timestamp>, kupo.

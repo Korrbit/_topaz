@@ -1,14 +1,13 @@
 -----------------------------------------
--- Trust: Shantotto II
+-- Trust: Uka Totlihn
 -----------------------------------------
--- require("scripts/globals/trust")
+require("scripts/globals/trust")
 -----------------------------------------
 
 function onMagicCastingCheck(caster, target, spell)
-    return 0
+    return tpz.trust.canCast(caster, spell)
 end
 
 function onSpellCast(caster, target, spell)
-    -- caster:spawnTrust(1019)
-    return 0
+    return tpz.trust.spawn(caster, spell)
 end

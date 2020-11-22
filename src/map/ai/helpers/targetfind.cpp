@@ -24,6 +24,7 @@ along with this program.  If not, see http://www.gnu.org/licenses/
 #include <math.h>
 #include "../../entities/charentity.h"
 #include "../../entities/mobentity.h"
+#include "../../entities/trustentity.h"
 #include "../../packets/action.h"
 #include "../../alliance.h"
 #include "../../../common/mmo.h"
@@ -94,12 +95,11 @@ void CTargetFind::findWithinArea(CBattleEntity* PTarget, AOERADIUS radiusType, f
     m_PTarget = PTarget;
     isPlayer = checkIsPlayer(m_PBattleEntity);
 
-    if (isPlayer){
+    if (isPlayer)
+    {
         // handle this as a player
-
         if (m_PMasterTarget->objtype == TYPE_PC)
         {
-
             // players will never need to add whole alliance
             m_findType = FIND_PLAYER_PLAYER;
 
@@ -116,22 +116,22 @@ void CTargetFind::findWithinArea(CBattleEntity* PTarget, AOERADIUS radiusType, f
                     addAllInParty(m_PMasterTarget, withPet);
                 }
             }
-            else {
+            else 
+            {
                 // just add myself
                 addEntity(m_PMasterTarget, withPet);
             }
-
         }
-        else {
+        else 
+        {
             m_findType = FIND_PLAYER_MONSTER;
             // special case to add all mobs in range
             addAllInMobList(m_PMasterTarget, false);
         }
-
     }
-    else {
+    else 
+    {
         // handle this as a mob
-
         if (m_PMasterTarget->objtype == TYPE_PC || m_PBattleEntity->allegiance == ALLEGIANCE_PLAYER){
             m_findType = FIND_MONSTER_PLAYER;
         }
@@ -236,6 +236,11 @@ void CTargetFind::addAllInZone(CBattleEntity* PTarget, bool withPet)
 			addEntity(PMob, withPet);
 		}
 	});
+    zoneutils::GetZone(PTarget->getZone())->ForEachTrustInstance(PTarget, [&](CTrustEntity* PTrust){
+		if (PTrust){
+			addEntity(PTrust, withPet);
+		}
+	});
 }
 
 void CTargetFind::addAllInAlliance(CBattleEntity* PTarget, bool withPet)
@@ -248,12 +253,20 @@ void CTargetFind::addAllInAlliance(CBattleEntity* PTarget, bool withPet)
 
 void CTargetFind::addAllInParty(CBattleEntity* PTarget, bool withPet)
 {
-
-    PTarget->ForParty([this, withPet](CBattleEntity* PMember)
+    if (PTarget->objtype == TYPE_PC)
     {
-        addEntity(PMember, withPet);
-    });
-
+        static_cast<CCharEntity*>(PTarget)->ForPartyWithTrusts([this, withPet](CBattleEntity* PMember)
+        {
+            addEntity(PMember, withPet);
+        });
+    }
+    else
+    {
+        PTarget->ForParty([this, withPet](CBattleEntity* PMember)
+        {
+            addEntity(PMember, withPet);
+        });
+    }
 }
 
 void CTargetFind::addAllInEnmityList()
@@ -323,7 +336,6 @@ void CTargetFind::addEntity(CBattleEntity* PTarget, bool withPet)
     {
         m_targets.push_back(PTarget->PPet);
     }
-
 }
 
 CBattleEntity* CTargetFind::findMaster(CBattleEntity* PTarget)
@@ -413,6 +425,10 @@ bool CTargetFind::validEntity(CBattleEntity* PTarget)
 
         }
         else if (m_findType == FIND_MONSTER_MONSTER || m_findType == FIND_PLAYER_PLAYER){
+            if (PTarget->objtype == TYPE_TRUST)
+            {
+                return true;
+            }
             return false;
         }
     }
@@ -508,7 +524,7 @@ bool CTargetFind::canSee(position_t* point)
 
 CBattleEntity* CTargetFind::getValidTarget(uint16 actionTargetID, uint16 validTargetFlags)
 {
-    CBattleEntity* PTarget = (CBattleEntity*)m_PBattleEntity->GetEntity(actionTargetID, TYPE_MOB | TYPE_PC | TYPE_PET);
+    CBattleEntity* PTarget = (CBattleEntity*)m_PBattleEntity->GetEntity(actionTargetID, TYPE_MOB | TYPE_PC | TYPE_PET | TYPE_TRUST);
 
     if (PTarget == nullptr)
     {

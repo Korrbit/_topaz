@@ -475,6 +475,7 @@ class CAttackState;
 class CWeaponSkillState;
 class CMagicState;
 class CDespawnState;
+class CRangeState;
 class CRecastContainer;
 class CNotorietyContainer;
 struct action_t;
@@ -582,6 +583,7 @@ public:
             func(this, std::forward<Args>(args)...);
         }
     }
+
     template        <typename F, typename... Args>
     void            ForAlliance(F func, Args&&... args)
     {
@@ -633,6 +635,7 @@ public:
     virtual void OnChangeTarget(CBattleEntity* PTarget);
 
     virtual void OnAbility(CAbilityState&, action_t&) {}
+    virtual void OnRangedAttack(CRangeState&, action_t&) {}
     virtual void OnDeathTimer();
     virtual void OnRaise() {}
     virtual void TryHitInterrupt(CBattleEntity* PAttacker);
@@ -668,7 +671,8 @@ public:
     CParty*			PParty;					    // описание группы, в которой состоит сущность
     CBattleEntity*	PPet;					    // питомец сущности
     CBattleEntity*	PMaster;				    // владелец/хозяин сущности (распространяется на все боевые сущности)
-    CBattleEntity*	PLastAttacker;
+    CBattleEntity*  PLastAttacker;
+    time_point      LastAttacked;
 
     std::unique_ptr<CStatusEffectContainer> StatusEffectContainer;
     std::unique_ptr<CRecastContainer> PRecastContainer;

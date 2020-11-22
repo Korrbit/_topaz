@@ -21,6 +21,7 @@ zones[tpz.zone.UPPER_JEUNO] =
         CARRIED_OVER_POINTS              = 6586, -- You have carried over <number> login point[/s].
         LOGIN_CAMPAIGN_UNDERWAY          = 6587, -- The [/January/February/March/April/May/June/July/August/September/October/November/December] <number> Login Campaign is currently underway!<space>
         LOGIN_NUMBER                     = 6588, -- In celebration of your most recent login (login no. <number>), we have provided you with <number> points! You currently have a total of <number> points.
+        YOU_MUST_WAIT_ANOTHER_N_DAYS     = 6583, -- You must wait another ≺number≻ [day/days] to perform that action.
         HOMEPOINT_SET                    = 6676, -- Home point set!
         MOG_LOCKER_OFFSET                = 6794, -- Your Mog Locker lease is valid until <timestamp>, kupo.
         GLYKE_SHOP_DIALOG                = 6977, -- Can I help you?

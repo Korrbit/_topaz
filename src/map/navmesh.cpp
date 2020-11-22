@@ -20,12 +20,12 @@
 */
 
 #include "navmesh.h"
-#include "../common/detour/DetourNavMeshQuery.h"
-#include <float.h>
-#include <string.h>
+
+#include <cstring>
+#include <cfloat>
 #include <iostream>
 #include <fstream>
-#include "../common/utils.h"
+
 #include "../common/tpzrand.h"
 
 const int8 CNavMesh::ERROR_NEARESTPOLY;
@@ -164,7 +164,6 @@ bool CNavMesh::load(const std::string& filename)
 
 void CNavMesh::outputError(uint32 status)
 {
-
     if (status & DT_WRONG_MAGIC)
     {
         ShowNavError("Detour wrong magic\n");
@@ -383,7 +382,7 @@ bool CNavMesh::validPosition(const position_t& position)
     return m_navMesh->isValidPolyRef(startRef);
 }
 
-bool CNavMesh::raycast(const position_t& start, const position_t& end)
+bool CNavMesh::raycast(const position_t& start, const position_t& end, bool lookOffMesh)
 {
     TracyZoneScoped;
 
@@ -463,7 +462,7 @@ bool CNavMesh::raycast(const position_t& start, const position_t& end)
     // raycasted to - it needs to be on the navmesh. This will check to
     // see if the player is "off-mesh" and raycast to the nearest "on-mesh"
     // point instead. distanceToWall will be 0.0f if the player is "off-mesh".
-    if (distanceToWall < 0.01f)
+    if (distanceToWall < 0.01f && lookOffMesh)
     {
         // Overwrite epos with closest valid point
         status = m_navMeshQuery.closestPointOnPolyBoundary(startRef, epos, epos);
