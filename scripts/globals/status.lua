@@ -26,6 +26,7 @@ tpz.zoneMisc =
     TREASURE   = 0x0100, -- Presence in the global zone TreasurePool
     AH         = 0x0200, -- Ability to use the auction house
     YELL       = 0x0400, -- Send and receive /yell commands
+    TRUST      = 0x0800, -- Ability to cast trust magic
 }
 
 ------------------------------------
@@ -1536,7 +1537,13 @@ tpz.mod =
     -- Per https://www.bg-wiki.com/bg/Weapon_Skill_Damage we need all 3..
     ALL_WSDMG_FIRST_HIT             = 841, -- Generic (all Weaponskills) damage, first hit only.
     WS_NO_DEPLETE                   = 949, -- % chance a Weaponskill depletes no TP.
+    WS_STR_BONUS                    = 980, -- % bonus to str_wsc.
     WS_DEX_BONUS                    = 957, -- % bonus to dex_wsc.
+    WS_VIT_BONUS                    = 981, -- % bonus to vit_wsc.
+    WS_AGI_BONUS                    = 982, -- % bonus to agi_wsc.
+    WS_INT_BONUS                    = 983, -- % bonus to int_wsc.
+    WS_MND_BONUS                    = 984, -- % bonus to mnd_wsc.
+    WS_CHR_BONUS                    = 985, -- % bonus to chr_wsc.
 
     -- Circle Abilities Extended Duration from AF/AF+1
     HOLY_CIRCLE_DURATION            = 857,
@@ -1575,9 +1582,9 @@ tpz.mod =
 
     -- The spares take care of finding the next ID to use so long as we don't forget to list IDs that have been freed up by refactoring.
     -- 570 - 825 used by WS DMG mods these are not spares.
-    -- SPARE = 980, -- stuff
-    -- SPARE = 981, -- stuff
-    -- SPARE = 982, -- stuff
+    -- SPARE = 986, -- stuff
+    -- SPARE = 987, -- stuff
+    -- SPARE = 988, -- stuff
 }
 
 tpz.latent =
@@ -2147,11 +2154,13 @@ tpz.MAX_SLOTID  = 15
 
 tpz.objType =
 {
-    PC   = 0x01,
-    NPC  = 0x02,
-    MOB  = 0x04,
-    PET  = 0x08,
-    SHIP = 0x10,
+    PC     = 0x01,
+    NPC    = 0x02,
+    MOB    = 0x04,
+    PET    = 0x08,
+    SHIP   = 0x10,
+    TRUST  = 0x20,
+    FELLOW = 0x40,
 }
 
 ----------------------------------

@@ -52,6 +52,7 @@ along with this program.  If not, see http://www.gnu.org/licenses/
 #include "entities/mobentity.h"
 #include "entities/npcentity.h"
 #include "entities/trustentity.h"
+#include "entities/charentity.h"
 #include "spell.h"
 #include "utils/synthutils.h"
 #include "trade_container.h"
@@ -128,7 +129,7 @@ along with this program.  If not, see http://www.gnu.org/licenses/
 #include "packets/menu_merit.h"
 #include "packets/merit_points_categories.h"
 #include "packets/message_basic.h"
-#include "packets/message_debug.h"
+#include "packets/message_combat.h"
 #include "packets/message_standard.h"
 #include "packets/message_system.h"
 #include "packets/party_define.h"
@@ -392,6 +393,11 @@ void SmallPacket0x00D(map_session_data_t* session, CCharEntity* PChar, CBasicPac
         PChar->updatemask |= UPDATE_HP;
     }
 
+    if (!PChar->PTrusts.empty())
+    {
+        PChar->ClearTrusts();
+    }
+
     if (PChar->status == STATUS_SHUTDOWN)
     {
         if (PChar->PParty != nullptr)
@@ -576,6 +582,7 @@ void SmallPacket0x015(map_session_data_t* session, CCharEntity* PChar, CBasicPac
 
         PChar->loc.zone->SpawnMOBs(PChar);
         PChar->loc.zone->SpawnPETs(PChar);
+        PChar->loc.zone->SpawnTRUSTs(PChar);
 
         if (PChar->PWideScanTarget != nullptr)
         {
@@ -881,6 +888,7 @@ void SmallPacket0x01A(map_session_data_t* PSession, CCharEntity* PChar, CBasicPa
                 PChar->loc.zone->SpawnPCs(PChar);
                 PChar->loc.zone->SpawnNPCs(PChar);
                 PChar->loc.zone->SpawnMOBs(PChar);
+                PChar->loc.zone->SpawnTRUSTs(PChar);
             }
         }
         break;
@@ -3397,6 +3405,7 @@ void SmallPacket0x06E(map_session_data_t* session, CCharEntity* PChar, CBasicPac
             {
                 PInvitee = zoneutils::GetChar(charid);
             }
+
             if (PInvitee)
             {
                 ShowDebug(CL_CYAN"%s sent alliance invite to %s\n" CL_RESET, PChar->GetName(), PInvitee->GetName());
@@ -3753,6 +3762,12 @@ void SmallPacket0x074(map_session_data_t* session, CCharEntity* PChar, CBasicPac
                     ShowDebug(CL_CYAN"%s party added to %s alliance\n" CL_RESET, PChar->GetName(), PInviter->GetName());
                     return;
                 }
+                else if (PChar->PParty->HasTrusts() || PInviter->PParty->HasTrusts())
+                {
+                    // Cannot form alliance if you have Trusts
+                    PChar->pushPacket(new CMessageStandardPacket(PChar, 0, 0, MsgStd::TrustCannotJoinAlliance));
+                    return;
+                }
                 else
                 {
                     //party leaders have no alliance - create a new one!
@@ -3830,7 +3845,7 @@ void SmallPacket0x076(map_session_data_t* session, CCharEntity* PChar, CBasicPac
     else
     {
         //previous CPartyDefine was dropped or otherwise didn't work?
-        PChar->pushPacket(new CPartyDefinePacket(nullptr));
+        PChar->pushPacket(new CPartyDefinePacket(nullptr, false));
     }
     return;
 }

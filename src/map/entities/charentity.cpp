@@ -490,32 +490,33 @@ bool CCharEntity::ReloadParty()
 void CCharEntity::RemoveTrust(CTrustEntity* PTrust)
 {
     if (!PTrust->PAI->IsSpawned())
+    {
         return;
+    }
 
-    auto trustIt = std::remove_if(PTrusts.begin(), PTrusts.end(), [PTrust](auto trust) { return PTrust == trust; });
+    auto trustIt = std::find_if(PTrusts.begin(), PTrusts.end(), [PTrust](auto trust) { return PTrust == trust; });
     if (trustIt != PTrusts.end())
     {
+        if (PTrust->animation == ANIMATION_DESPAWN)
+        {
+            luautils::OnMobDespawn(PTrust);
+        }
         PTrust->PAI->Despawn();
         PTrusts.erase(trustIt);
     }
-    if (PParty != nullptr)
-    {
-        PParty->ReloadParty();
-    }
+
+    ReloadPartyInc();
 }
 
 void CCharEntity::ClearTrusts()
 {
-    if (PTrusts.size() == 0)
+    for (auto PTrust : PTrusts)
     {
-        return;
-    }
-
-    for (auto trust : PTrusts)
-    {
-        trust->PAI->Despawn();
+        PTrust->PAI->Despawn();
     }
     PTrusts.clear();
+
+    ReloadPartyInc();
 }
 
 void CCharEntity::Tick(time_point tick)
@@ -1696,6 +1697,8 @@ void CCharEntity::Die()
 
 void CCharEntity::Die(duration _duration)
 {
+    this->ClearTrusts();
+
     m_deathSyncTime = server_clock::now() + death_update_frequency;
     PAI->ClearStateStack();
     PAI->Internal_Die(_duration);

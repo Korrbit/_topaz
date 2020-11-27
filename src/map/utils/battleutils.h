@@ -107,7 +107,7 @@ namespace battleutils
     uint8           getHitCount(uint8 hits);
     uint8           CheckMobMultiHits(CBattleEntity* PEntity);
 
-    int16           GetSnapshotReduction(CCharEntity* m_PChar, int16 delay);
+    int16           GetSnapshotReduction(CBattleEntity* battleEntity, int16 delay);
     int32           GetRangedAttackBonuses(CBattleEntity* battleEntity);
     int32           GetRangedAccuracyBonuses(CBattleEntity* battleEntity);
 
@@ -124,11 +124,12 @@ namespace battleutils
     void                FreeWeaponSkillsList();
     void                FreeMobSkillList();
 
-    SUBEFFECT           GetSkillChainEffect(CBattleEntity* PDefender, uint8 primary, uint8 secondary, uint8 tertiary);
-    SKILLCHAIN_ELEMENT  FormSkillchain(const std::list<SKILLCHAIN_ELEMENT>& resonance, const std::list<SKILLCHAIN_ELEMENT>& skill);
-    uint8               GetSkillchainTier(SKILLCHAIN_ELEMENT skillchain);
-    uint8               GetSkillchainSubeffect(SKILLCHAIN_ELEMENT skillchain);
-    int16               GetSkillchainMinimumResistance(SKILLCHAIN_ELEMENT element, CBattleEntity* PDefender, ELEMENT* appliedEle);
+    SUBEFFECT            GetSkillChainEffect(CBattleEntity* PDefender, uint8 primary, uint8 secondary, uint8 tertiary);
+    SKILLCHAIN_ELEMENT   FormSkillchain(const std::list<SKILLCHAIN_ELEMENT>& resonance, const std::list<SKILLCHAIN_ELEMENT>& skill);
+    uint8                GetSkillchainTier(SKILLCHAIN_ELEMENT skillchain);
+    uint8                GetSkillchainSubeffect(SKILLCHAIN_ELEMENT skillchain);
+    int16                GetSkillchainMinimumResistance(SKILLCHAIN_ELEMENT element, CBattleEntity* PDefender, ELEMENT* appliedEle);
+    std::vector<ELEMENT> GetSkillchainMagicElement(SKILLCHAIN_ELEMENT skillchain);
 
     bool            IsParalyzed(CBattleEntity* PAttacker);
     bool            IsAbsorbByShadow(CBattleEntity* PDefender);
@@ -168,7 +169,7 @@ namespace battleutils
     bool                isValidSelfTargetWeaponskill(int wsid);
     bool                CanUseWeaponskill(CCharEntity* PChar, CWeaponSkill* PSkill);
     int16               CalculateBaseTP(int delay);
-    void                GenerateCureEnmity(CCharEntity* PSource, CBattleEntity* PTarget, int32 amount);
+    void                GenerateCureEnmity(CBattleEntity* PSource, CBattleEntity* PTarget, int32 amount);
     void                GenerateInRangeEnmity(CBattleEntity* PSource, int16 CE, int16 VE);
 
     CItemWeapon*        GetEntityWeapon(CBattleEntity* PEntity, SLOTTYPE Slot);

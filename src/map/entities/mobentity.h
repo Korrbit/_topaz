@@ -113,7 +113,7 @@ class CMobEntity : public CBattleEntity
 {
 public:
     CMobEntity();
-    ~CMobEntity();
+    virtual ~CMobEntity();
 
     uint32    getEntityFlags();                        // Returns the current value in m_flags
     void      setEntityFlags(uint32 EntityFlags);      // Change the current value in m_flags
@@ -169,7 +169,7 @@ public:
     virtual void OnCastFinished(CMagicState&, action_t&) override;
 
     virtual void OnDisengage(CAttackState&) override;
-    virtual void OnDeathTimer() override;public:
+    virtual void OnDeathTimer() override;
 
     virtual void OnDespawn(CDespawnState&) override;
 
@@ -256,8 +256,6 @@ protected:
 
     void DistributeRewards();
     void DropItems(CCharEntity* PChar);
-
-
 
 private:
 

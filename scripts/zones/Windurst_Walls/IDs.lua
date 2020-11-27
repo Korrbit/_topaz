@@ -23,6 +23,7 @@ zones[tpz.zone.WINDURST_WALLS] =
         CARRIED_OVER_POINTS            = 6586, -- You have carried over <number> login point[/s].
         LOGIN_CAMPAIGN_UNDERWAY        = 6587, -- The [/January/February/March/April/May/June/July/August/September/October/November/December] <number> Login Campaign is currently underway!<space>
         LOGIN_NUMBER                   = 6588, -- In celebration of your most recent login (login no. <number>), we have provided you with <number> points! You currently have a total of <number> points.
+        YOU_LEARNED_TRUST              = 6610, -- You learned Trust: <name>!
         HOMEPOINT_SET                  = 6638, -- Home point set!
         MOG_LOCKER_OFFSET              = 6812, -- Your Mog Locker lease is valid until <timestamp>, kupo.
         ITEM_DELIVERY_DIALOG           = 6965, -- We can deliver goods to your residence or to the residences of your friends.

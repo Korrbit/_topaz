@@ -62,16 +62,14 @@ enum PETID
 
 class CBattleEntity;
 class CPetEntity;
-class CTrustEntity;
 
 namespace petutils
 {
-	void LoadPetList();
-	void FreePetList();
+    void LoadPetList();
+    void FreePetList();
 
-	void SpawnPet(CBattleEntity* PMaster, uint32 PetID, bool spawningFromZone);
+    void SpawnPet(CBattleEntity* PMaster, uint32 PetID, bool spawningFromZone);
     void SpawnMobPet(CBattleEntity* PMaster, uint32 PetID);
-    void SpawnTrust(CCharEntity * PMaster, uint32 TrustID);
     void DetachPet(CBattleEntity* PMaster);
     void DespawnPet(CBattleEntity* PMaster);
     void AttackTarget(CBattleEntity* PMaster, CBattleEntity* PTarget);
@@ -82,7 +80,6 @@ namespace petutils
     void LoadWyvernStatistics(CBattleEntity* PMaster, CPetEntity* PPet, bool finalize);
     void FinalizePetStatistics(CBattleEntity* PMaster, CPetEntity* PPet);
     bool CheckPetModType(CBattleEntity* PPet, PetModType petmod);
-    CTrustEntity* LoadTrust(CCharEntity* PMaster, uint32 TrustID);
 };
 
 #endif
